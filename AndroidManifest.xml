@@ -2,11 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="kogut.tomasz.ucanShare"
       android:versionCode="1"
-      android:versionName="1.0">
+      android:versionName="1.0" android:installLocation="auto">
     <uses-sdk android:minSdkVersion="4" />
-
-    <application android:icon="@drawable/icon" android:label="@string/app_name">
-
-
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+        <activity android:name="Ucan" android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"></action>
+                <category android:name="android.intent.category.LAUNCHER"></category>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World!</string>
     <string name="app_name">U-CAN Share</string>
+    <string name="main_button">Check...</string>
+    <string name="instruct">Click on the button to see what is the broadcast adress</string>
 </resources>
