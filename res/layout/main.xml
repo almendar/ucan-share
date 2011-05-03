@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:orientation="vertical">
-<TextView  xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/textview"
-    android:layout_width="wrap_content" 
-    android:layout_height="wrap_content" 
-    android:text="@string/instruct"/>
-
-
-<Button android:id="@+id/button"
-		android:text="@string/main_button"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"  />
+	android:layout_height="fill_parent" android:orientation="horizontal">
+    <Button android:layout_width="wrap_content" android:text="@string/receive_broadcast" android:layout_height="wrap_content" android:id="@+id/btn_receive_broadcast" android:layout_weight="1"></Button>
+    <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/btn_send_broadcast" android:text="@string/send_broadcast" android:layout_weight="1"></Button>
 </LinearLayout>

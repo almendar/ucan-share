@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">U-CAN Share</string>
-    <string name="main_button">Check...</string>
-    <string name="instruct">Click on the button to see what is the broadcast adress</string>
+    <string name="send_broadcast">Send broadcast messages...</string>
+    <string name="no_broadcast_adress_availiable">Broadcast adress could not be established properly.</string>
+    <string name="broadcast_send_ok">Broadcast was send.</string>
+    <string name="receive_broadcast">Receive broadcast messages...</string>
+    <string name="empty"></string>
 </resources>
