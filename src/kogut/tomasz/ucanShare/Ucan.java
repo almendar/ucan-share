@@ -16,6 +16,7 @@ public class Ucan extends Activity {
 	private Context mContext;
 	private Button mBtnSendBroadcast;
 	private Button mBtnReceiveBroadcast;
+	private Button mBtnStartFileChooser;
 	private OnClickListener mActionBroadcast = new OnClickListener() {
 
 		@Override
@@ -39,6 +40,16 @@ public class Ucan extends Activity {
 			startActivity(intent);
 		}
 	};
+	
+	
+	private OnClickListener mActionStartFileChooser = new OnClickListener() {
+		
+		@Override
+		public void onClick(View arg0) {
+			Intent myIntent = new Intent(Ucan.this, FileChooser.class);
+			startActivity(myIntent);
+		}
+	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -52,11 +63,13 @@ public class Ucan extends Activity {
 		mContext = getApplicationContext();
 		mBtnSendBroadcast = (Button) findViewById(R.id.btn_send_broadcast);
 		mBtnReceiveBroadcast = (Button) findViewById(R.id.btn_receive_broadcast);
+		mBtnStartFileChooser = (Button) findViewById(R.id.btn_start_filechooser);
 
 	}
 
 	private void bindEvents() {
 		mBtnReceiveBroadcast.setOnClickListener(mActionBroadcast);
 		mBtnSendBroadcast.setOnClickListener(mActionBroadcast);
+		mBtnStartFileChooser.setOnClickListener(mActionStartFileChooser);
 	}
 }
