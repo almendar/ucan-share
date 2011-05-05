@@ -14,5 +14,6 @@
             </intent-filter>
         </activity>
         <activity android:name="BroadcastHandle"></activity>
+        <activity android:name="FileChooser"></activity>
     </application>
 </manifest>
