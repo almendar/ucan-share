@@ -1,3 +1,4 @@
 syntax: glob
+gen/kogut/tomasz/ucanShare/R.java
 syntax: regexp
 ^bin$
