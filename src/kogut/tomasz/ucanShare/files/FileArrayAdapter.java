@@ -1,5 +1,6 @@
 package kogut.tomasz.ucanShare.files;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kogut.tomasz.ucanShare.R;
@@ -19,46 +20,62 @@ public class FileArrayAdapter extends ArrayAdapter<LocalFileDescriptor> {
 
 	private Context c;
 	private int id;
-	private List<LocalFileDescriptor> items;
-	public  List<LocalFileDescriptor> marked;
-	public FileArrayAdapter(Context context, int textViewResourceId,
-			List<LocalFileDescriptor> objects, List<LocalFileDescriptor> markedObjects) {
-		super(context, textViewResourceId, objects);
+	private ArrayList<LocalFileDescriptor> mMarked;
+
+
+
+	public FileArrayAdapter(Context context, int textViewResourceId) {
+		super(context, textViewResourceId);
 		c = context;
 		id = textViewResourceId;
-		items = objects;
-		marked = markedObjects;
+		mMarked = new ArrayList<LocalFileDescriptor>();
 	}
 
-	@Override
-	public LocalFileDescriptor getItem(int position) {
-		return items.get(position);
+	public void addToMarked(LocalFileDescriptor toBeMarked) {
+		mMarked.add(toBeMarked);
+		notifyDataSetChanged();
 	}
 
+	public void removedFromMarked(LocalFileDescriptor toBeUnmarked) {
+		mMarked.remove(toBeUnmarked);
+		notifyDataSetChanged();
+	}
+	
+	public ArrayList<String> getMarkedFilesCopy() {
+		ArrayList<String> ret = new ArrayList<String>();
+		for(LocalFileDescriptor desc : mMarked) {
+			ret.add(desc.getPath());
+		}
+		return ret;
+		
+	}
+	
+	
+
+	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View v = convertView;
-		if (v == null) {
-			LayoutInflater vi = (LayoutInflater) c
-					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			v = vi.inflate(id, null);
-		}
-		final LocalFileDescriptor o = items.get(position);
+		LayoutInflater vi = (LayoutInflater) c
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		v = vi.inflate(id, null);
+		final LocalFileDescriptor o = getItem(position);
 		if (o != null) {
 			TextView t1 = (TextView) v.findViewById(R.id.TextView01);
 			TextView t2 = (TextView) v.findViewById(R.id.TextView02);
 
 			if (t1 != null) {
 				t1.setText(o.getName());
-				if(marked.contains(o)) {
+				if (mMarked.contains(o)) {
 					t1.setBackgroundResource(R.color.red);
+					Toast.makeText(getContext(), mMarked.size() + " ",
+							Toast.LENGTH_SHORT).show();
 				}
 
 			}
 			if (t2 != null) {
 				t2.setText(o.getData());
 			}
-
 		}
 		return v;
 	}

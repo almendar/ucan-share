@@ -13,8 +13,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class SharedFiles {
-	private final static Logger log = Logger.getLogger(SharedFiles.class.toString());
+public class SharedFilesManager {
+	private final static Logger log = Logger.getLogger(SharedFilesManager.class.toString());
 	private final static String[] VIDEO_EXTENSIONS = { ".avi", ",mkv", "mp4" };
 	private final static String[] MUSIC_EXTENSTIONS = { "mp3", "wav", "ogg" };
 	private final static String[] DOCUMENT_EXTENSIONS = { "docx", "doc", "pdf",
@@ -28,7 +28,7 @@ public class SharedFiles {
 
 	Stack<File> mFilesToProcess = new Stack<File>();
 
-	public SharedFiles() {
+	public SharedFilesManager() {
 
 	}
 

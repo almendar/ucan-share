@@ -2,52 +2,75 @@ package kogut.tomasz.ucanShare;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import kogut.tomasz.ucanShare.files.FileArrayAdapter;
-import kogut.tomasz.ucanShare.files.FileDescription;
 import kogut.tomasz.ucanShare.files.LocalFileDescriptor;
 import android.app.ListActivity;
-import android.content.OperationApplicationException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
 
 public class FileChooser extends ListActivity {
 
+	BroadcastReceiver mExternalStorageReceiver;
+	boolean mExternalStorageAvailable = false;
+	boolean mExternalStorageWriteable = false;
+
 	private final int MENU_ADD = Menu.FIRST;
 	private final int MENU_DISCARD = Menu.FIRST + 1;
-	private ArrayList<LocalFileDescriptor> mToAdd;
 	private File mCurrentDir;
 	FileArrayAdapter mAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mCurrentDir = new File("/sdcard/");
-		mToAdd = new ArrayList<LocalFileDescriptor>();
+		getListView().setEmptyView(findViewById(R.layout.empty_list));
+		updateExternalStorageState();
+		startWatchingExternalStorage();
+		mAdapter = new FileArrayAdapter(this, R.layout.file_view);
+		mAdapter.notifyDataSetChanged();
+		this.setListAdapter(mAdapter);
 		fill();
+	}
+	@Override
+	public void onStop() {
+		super.onStop();
+	}
 
-		// ListView lView = getListView();
-
+	/** Called when the activity looses focus **/
+	@Override
+	public void onPause() {
+		super.onPause();
+		Intent myIntent = new Intent();
+		myIntent.putExtra("sharedFiles", mAdapter.getMarkedFilesCopy());
+		this.setIntent(myIntent);
 	}
 
 	private void fill() {
+		mAdapter.clear();
+		if (mCurrentDir == null) {
+			return;
+		}
 		File[] dirs = mCurrentDir.listFiles();
-		this.setTitle("Current dir:" + mCurrentDir.getName());
-
-		List<LocalFileDescriptor> dir = new ArrayList<LocalFileDescriptor>();
-		List<LocalFileDescriptor> fls = new ArrayList<LocalFileDescriptor>();
+		// this.setTitle("Current dir:" + mCurrentDir.getName());
+		ArrayList<LocalFileDescriptor> dir = new ArrayList<LocalFileDescriptor>();
+		ArrayList<LocalFileDescriptor> fls = new ArrayList<LocalFileDescriptor>();
 		for (File f : dirs) {
 			if (f.isDirectory()) {
+
 				dir.add(new LocalFileDescriptor(f.getName(), "Folder", f
 						.getAbsolutePath()));
 			} else {
@@ -62,11 +85,9 @@ public class FileChooser extends ListActivity {
 			dir.add(0, new LocalFileDescriptor("..", "Parent directory",
 					mCurrentDir.getParent()));
 		}
-
-		mAdapter = new FileArrayAdapter(FileChooser.this, R.layout.file_view,
-				dir, mToAdd);
-		this.setListAdapter(mAdapter);
-
+		for (LocalFileDescriptor desc : dir) {
+			mAdapter.add(desc);
+		}
 		registerForContextMenu(getListView());
 	}
 
@@ -87,33 +108,75 @@ public class FileChooser extends ListActivity {
 		final LocalFileDescriptor o = mAdapter.getItem(info.position);
 		switch (item.getItemId()) {
 		case MENU_ADD:
-			mToAdd.add(o);
+			mAdapter.addToMarked(o);
 			break;
 		case MENU_DISCARD:
-			mToAdd.remove(o);
+			mAdapter.removedFromMarked(o);
 			break;
 		}
-		fill();
 		return ret;
 	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
-		LocalFileDescriptor o = mAdapter.getItem(position);
-		if (o.getData().equalsIgnoreCase("folder")
-				|| o.getData().equalsIgnoreCase("parent directory")) {
-			o.setChecked(!o.isChecked());
-			mCurrentDir = new File(o.getPath());
+		LocalFileDescriptor descriptor = mAdapter.getItem(position);
+		if (descriptor.getData().equalsIgnoreCase("folder")
+				|| descriptor.getData().equalsIgnoreCase("parent directory")) {
+			descriptor.setChecked(!descriptor.isChecked());
+			mCurrentDir = new File(descriptor.getPath());
 			fill();
 		} else {
-			onFileClick(o);
+			onFileClick(descriptor);
 		}
+	}
+
+	void handleExternalStorageState(boolean available, boolean writeable) {
+		if (!available) {
+			mCurrentDir = null;
+			fill();
+		} else {
+			mCurrentDir = Environment.getExternalStorageDirectory();
+		}
+	}
+
+	void updateExternalStorageState() {
+		String state = Environment.getExternalStorageState();
+		if (Environment.MEDIA_MOUNTED.equals(state)) {
+			mExternalStorageAvailable = mExternalStorageWriteable = true;
+		} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+			mExternalStorageAvailable = true;
+			mExternalStorageWriteable = false;
+		} else {
+			mExternalStorageAvailable = mExternalStorageWriteable = false;
+		}
+		handleExternalStorageState(mExternalStorageAvailable,
+				mExternalStorageWriteable);
+	}
+
+	void startWatchingExternalStorage() {
+		mExternalStorageReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Log.i("test", "Storage: " + intent.getData());
+				updateExternalStorageState();
+			}
+		};
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
+		filter.addAction(Intent.ACTION_MEDIA_REMOVED);
+		registerReceiver(mExternalStorageReceiver, filter);
+		updateExternalStorageState();
+	}
+
+	void stopWatchingExternalStorage() {
+		unregisterReceiver(mExternalStorageReceiver);
 	}
 
 	private void onFileClick(LocalFileDescriptor o) {
 		Toast.makeText(this, "File Clicked: " + o.getName(), Toast.LENGTH_SHORT)
 				.show();
 	}
+
 
 }

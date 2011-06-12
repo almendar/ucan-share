@@ -2,6 +2,9 @@ package kogut.tomasz.ucanShare.files;
 
 import java.util.zip.CheckedInputStream;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 public class LocalFileDescriptor implements Comparable<LocalFileDescriptor> {
 
 	private final String mName;
@@ -19,8 +22,8 @@ public class LocalFileDescriptor implements Comparable<LocalFileDescriptor> {
 	@Override
 	public int compareTo(LocalFileDescriptor o) {
 		if (this.mName != null) {
-			return this.mName.toLowerCase()
-					.compareTo(o.getName().toLowerCase());
+			return this.getPath().toLowerCase()
+					.compareTo(o.getPath().toLowerCase());
 		} else {
 			throw new IllegalArgumentException();
 		}

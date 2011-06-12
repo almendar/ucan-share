@@ -25,11 +25,8 @@ public class FileDescription implements Serializable {
 		return mFileSize;
 	}
 
-
-
 	private final int mId;
 	private final String mFileName;
 	private final long mFileSize;
-
 
 }
