@@ -1,11 +1,24 @@
 package kogut.tomasz.ucanShare;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import kogut.tomasz.ucanShare.files.FileArrayAdapter;
 import kogut.tomasz.ucanShare.files.LocalFileDescriptor;
+import android.app.Application;
 import android.app.ListActivity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -25,10 +38,13 @@ import android.widget.Toast;
 
 public class FileChooser extends ListActivity {
 
+	private final static String CACHE_DIR = "/Android/data/kogut.tomasz.ucanShare/cache/";
+	private final static String SHARED_PATHS_FILE_NAME = "shared_files.qwr";
+
+	private final static String TAG = FileChooser.class.getName();
 	BroadcastReceiver mExternalStorageReceiver;
 	boolean mExternalStorageAvailable = false;
 	boolean mExternalStorageWriteable = false;
-
 	private final int MENU_ADD = Menu.FIRST;
 	private final int MENU_DISCARD = Menu.FIRST + 1;
 	private File mCurrentDir;
@@ -37,27 +53,40 @@ public class FileChooser extends ListActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.d(TAG, "[Create] Activity created");
 		getListView().setEmptyView(findViewById(R.layout.empty_list));
 		updateExternalStorageState();
 		startWatchingExternalStorage();
 		mAdapter = new FileArrayAdapter(this, R.layout.file_view);
+		GlobalData gData = (GlobalData)getApplication();
+		mAdapter.setMarkedFilesCopy(gData.getSharedFolders());
+		mAdapter.setMarkedFilesCopy(readSharedPaths());
 		mAdapter.notifyDataSetChanged();
 		this.setListAdapter(mAdapter);
 		fill();
+
 	}
+
 	@Override
 	public void onStop() {
 		super.onStop();
+		storeSharedPaths(mAdapter.getMarkedFilesCopy());
+		Log.d(TAG,"[Stop]");
 	}
 
-	/** Called when the activity looses focus **/
-	@Override
-	public void onPause() {
-		super.onPause();
-		Intent myIntent = new Intent();
-		myIntent.putExtra("sharedFiles", mAdapter.getMarkedFilesCopy());
-		this.setIntent(myIntent);
-	}
+//	/** Called when the activity looses focus **/
+//	@Override
+//	public void onPause() {
+//		super.onPause();
+//		Log.d(TAG,"[Pause]");
+//	}
+
+//	@Override
+//	protected void onResume() {
+//		super.onResume();
+//		mAdapter.setMarkedFilesCopy(readSharedPaths());
+//		Log.d(TAG,"[Resume]");
+//	}
 
 	private void fill() {
 		mAdapter.clear();
@@ -169,6 +198,72 @@ public class FileChooser extends ListActivity {
 		updateExternalStorageState();
 	}
 
+	static ArrayList<LocalFileDescriptor> readSharedPaths() {
+
+		File f = android.os.Environment.getExternalStorageDirectory();
+		File shared_file = new File(f.getAbsoluteFile() + CACHE_DIR
+				+ SHARED_PATHS_FILE_NAME);
+		ArrayList<LocalFileDescriptor> paths = null;
+		InputStream in;
+		try {
+			in = new FileInputStream(shared_file);
+			InputStream buffer = new BufferedInputStream(in);
+			ObjectInput ois = new ObjectInputStream(buffer);
+			paths = (ArrayList<LocalFileDescriptor>) ois.readObject();
+			ois.close();
+			Log.i(TAG, "Shared paths were succesfully loaded. Number of records loaded: "+paths.size());
+		} catch (FileNotFoundException e) {
+			Log.w(TAG, e.getMessage());
+		} catch (StreamCorruptedException e) {
+			Log.w(TAG, e.getMessage());
+		} catch (IOException e) {
+
+			Log.w(TAG, e.getMessage());
+		} catch (ClassNotFoundException e) {
+			Log.w(TAG, e.getMessage());
+
+		} finally {
+			if (paths == null) {
+				paths = new ArrayList<LocalFileDescriptor>();
+				Log.i(TAG, "Empty shared locations returned");
+			}
+
+		}
+		return paths;
+
+	}
+
+	static void storeSharedPaths(ArrayList<LocalFileDescriptor> paths) {
+		File f = Environment.getExternalStorageDirectory();
+		File shared_file = new File(f.getAbsoluteFile() + CACHE_DIR
+				+ SHARED_PATHS_FILE_NAME);
+
+		try {
+
+			if (!shared_file.getParentFile().exists()) {
+				boolean ret = shared_file.getParentFile().mkdir();
+				Log.i(TAG, "Attempt to create directory for data was: "+ (ret ? "succes" : "failed"));
+			}
+
+			if (!shared_file.exists()) {
+				shared_file.createNewFile();
+			}
+			OutputStream out;
+			out = new FileOutputStream(shared_file);
+			OutputStream buffer = new BufferedOutputStream(out);
+			ObjectOutputStream oos = new ObjectOutputStream(buffer);
+			oos.writeObject(paths);
+			oos.close();
+			Log.i(TAG, "Paths file was saved. Number of records saved: " + paths.size());
+		} catch (FileNotFoundException e) {
+			Log.w(TAG, e.getMessage());
+		} catch (IOException e) {
+			Log.w(TAG, e.getMessage());
+		} finally {
+		}
+
+	}
+
 	void stopWatchingExternalStorage() {
 		unregisterReceiver(mExternalStorageReceiver);
 	}
@@ -177,6 +272,5 @@ public class FileChooser extends ListActivity {
 		Toast.makeText(this, "File Clicked: " + o.getName(), Toast.LENGTH_SHORT)
 				.show();
 	}
-
 
 }

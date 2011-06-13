@@ -41,17 +41,20 @@ public class FileArrayAdapter extends ArrayAdapter<LocalFileDescriptor> {
 		notifyDataSetChanged();
 	}
 	
-	public ArrayList<String> getMarkedFilesCopy() {
-		ArrayList<String> ret = new ArrayList<String>();
+	public ArrayList<LocalFileDescriptor> getMarkedFilesCopy() {
+		ArrayList<LocalFileDescriptor> ret = new ArrayList<LocalFileDescriptor>();
 		for(LocalFileDescriptor desc : mMarked) {
-			ret.add(desc.getPath());
+			ret.add(desc);
 		}
 		return ret;
-		
 	}
 	
-	
-
+	public void setMarkedFilesCopy(ArrayList<LocalFileDescriptor> markedFiles) {
+		mMarked.clear();
+		for(LocalFileDescriptor desc : markedFiles) {
+			mMarked.add(desc);
+		}
+	}
 	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {

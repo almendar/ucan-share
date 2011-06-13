@@ -6,7 +6,7 @@
     <!-- <uses-sdk android:minSdkVersion="4" />  -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
-    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true" android:name="GlobalData">
         <activity android:name="Ucan" android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"></action>
@@ -16,5 +16,9 @@
         <activity android:name="BroadcastHandle"/>
         <activity android:name="FileChooser"/>
         <activity android:name="SharedFolders" />
+        <activity android:name="SearchLocalFiles" />
     </application>
+    
+ 
+    
 </manifest>

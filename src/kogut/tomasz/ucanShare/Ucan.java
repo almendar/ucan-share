@@ -24,16 +24,23 @@ public class Ucan extends TabActivity {
 		intent = new Intent().setClass(this, FileChooser.class);
 
 		// Initialize a TabSpec for each tab and add it to the TabHost
-		spec = tabHost.newTabSpec("filechooser").setIndicator("FileChooser")
+		spec = tabHost.newTabSpec("filechooser").setIndicator("File Chooser")
 				.setContent(intent);
 		tabHost.addTab(spec);
-		
-		
+
 		// Create an Intent to launch an Activity for the tab (to be reused)
 		intent = new Intent().setClass(this, SharedFolders.class);
 
 		// Initialize a TabSpec for each tab and add it to the TabHost
-		spec = tabHost.newTabSpec("filechooser").setIndicator("Broadcasthandle")
+		spec = tabHost.newTabSpec("Shared files").setIndicator("Shared files")
+				.setContent(intent);
+		tabHost.addTab(spec);
+
+		// Create an Intent to launch an Activity for the tab (to be reused)
+		intent = new Intent().setClass(this, SearchLocalFiles.class);
+
+		// Initialize a TabSpec for each tab and add it to the TabHost
+		spec = tabHost.newTabSpec("Local search").setIndicator("Local search")
 				.setContent(intent);
 		tabHost.addTab(spec);
 	}

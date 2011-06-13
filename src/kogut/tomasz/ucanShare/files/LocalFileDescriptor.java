@@ -1,12 +1,17 @@
 package kogut.tomasz.ucanShare.files;
 
+import java.io.Serializable;
 import java.util.zip.CheckedInputStream;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class LocalFileDescriptor implements Comparable<LocalFileDescriptor> {
+public class LocalFileDescriptor implements Comparable<LocalFileDescriptor>, Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2304877448381326258L;
 	private final String mName;
 	private final String mData;
 	private final String mPath;

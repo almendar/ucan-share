@@ -12,30 +12,22 @@ import android.widget.ArrayAdapter;
 
 public class SharedFolders extends ListActivity {
 	ArrayList<LocalFileDescriptor> sharedFiles;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-	     Intent myIntent = new Intent();
-        myIntent = this.getIntent();
-        Bundle extras = myIntent.getExtras();
-        if(extras!=null)
-        	Log.d(SharedFolders.class.toString(), "" + extras.size());
-        else
-        	Log.d(SharedFolders.class.toString(), "Extras are empty");
-        	
-        
-        try {
-        	this.sharedFiles = (ArrayList<LocalFileDescriptor>) extras.get("sharedFiles");	
-        }catch (NullPointerException e) {
-			sharedFiles = new ArrayList<LocalFileDescriptor>();
+
+		ArrayList<LocalFileDescriptor> sharedFolders = FileChooser
+				.readSharedPaths();
+		ArrayList<String> sharedFilesStringRepresentation = new ArrayList<String>();
+		if (sharedFolders != null) {
+			for (LocalFileDescriptor desc : sharedFolders) {
+				sharedFilesStringRepresentation.add(desc.getPath());
+			}
 		}
-        
-        ArrayAdapter<LocalFileDescriptor> mAdapter = new ArrayAdapter<LocalFileDescriptor>(this, R.layout.shared_files_list,sharedFiles);
-        
-
+		ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this,
+				R.layout.shared_files_list, R.id.share_files,
+				sharedFilesStringRepresentation);
+		setListAdapter(mAdapter);
 	}
-	
-	
-
 }

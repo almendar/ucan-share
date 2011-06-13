@@ -12,11 +12,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class SharedFilesManager {
-	private final static Logger log = Logger.getLogger(SharedFilesManager.class.toString());
-	private final static String[] VIDEO_EXTENSIONS = { ".avi", ",mkv", "mp4" };
-	private final static String[] MUSIC_EXTENSTIONS = { "mp3", "wav", "ogg" };
+	private final static Logger log = Logger.getLogger(SharedFilesManager.class
+			.toString());
+	private final static String[] VIDEO_EXTENSIONS = { ".avi", ".mkv", ".mp4",
+			".3gp" };
+	private final static String[] MUSIC_EXTENSTIONS = { ".mp3", ".wav", ".ogg" };
+	private final static String[] IMAGE_EXTENSTIONS = { ".jpg", ".jpeg", ".bmp" };
 	private final static String[] DOCUMENT_EXTENSIONS = { "docx", "doc", "pdf",
 			"txt", "xls", "ppt" };
 
@@ -24,9 +26,10 @@ public class SharedFilesManager {
 	final Hashtable<Integer, File> mSharedFiles = new Hashtable<Integer, File>();
 	final FileFilter[] mFilters = { new ExtenstionFilter(VIDEO_EXTENSIONS),
 			new ExtenstionFilter(MUSIC_EXTENSTIONS),
-			new ExtenstionFilter(DOCUMENT_EXTENSIONS) };
+			new ExtenstionFilter(DOCUMENT_EXTENSIONS),
+			new ExtenstionFilter(IMAGE_EXTENSTIONS) };
 
-	Stack<File> mFilesToProcess = new Stack<File>();
+	Stack<File> filesToProcess = new Stack<File>();
 
 	public SharedFilesManager() {
 
@@ -40,7 +43,7 @@ public class SharedFilesManager {
 		} else {
 			for (String addedLocations : mSharedLocations) {
 				if (location.contains(addedLocations)) {
-					System.out.printf("Location discarded:%s\n",location);
+					System.out.printf("Location discarded:%s\n", location);
 					return;
 				} else if (addedLocations.contains(location)) {
 					toRemove.add(addedLocations);
@@ -50,7 +53,7 @@ public class SharedFilesManager {
 		}
 		for (String locationToRemove : toRemove) {
 			mSharedLocations.remove(locationToRemove);
-			System.out.printf("Location removed:%s\n",locationToRemove);
+			System.out.printf("Location removed:%s\n", locationToRemove);
 		}
 	}
 
@@ -86,10 +89,10 @@ public class SharedFilesManager {
 	}
 
 	private void processDirectory() {
-		while (!mFilesToProcess.isEmpty()) {
-			File f = mFilesToProcess.pop();
+		while (!filesToProcess.isEmpty()) {
+			File f = filesToProcess.pop();
 			if (f.isDirectory()) {
-				mFilesToProcess.addAll(Arrays.asList(f.listFiles()));
+				filesToProcess.addAll(Arrays.asList(f.listFiles()));
 			} else if (f.isFile() && filterFile(f)) {
 				mSharedFiles.put(f.hashCode(), f);
 			}
@@ -102,7 +105,7 @@ public class SharedFilesManager {
 
 	public void buildDatabase() {
 		LinkedList<String> missingLocations = new LinkedList<String>();
-		mFilesToProcess = new Stack<File>();
+		filesToProcess = new Stack<File>();
 		for (String location : mSharedLocations) {
 			File resource = new File(location);
 			if (!resource.exists()) {
@@ -112,7 +115,7 @@ public class SharedFilesManager {
 			if (resource.isFile()) {
 				mSharedFiles.put(resource.hashCode(), resource);
 			} else if (resource.isDirectory()) {
-				mFilesToProcess.addAll(Arrays.asList(resource.listFiles()));
+				filesToProcess.addAll(Arrays.asList(resource.listFiles()));
 				processDirectory();
 			}
 		}
@@ -120,7 +123,7 @@ public class SharedFilesManager {
 		for (String locationToRemove : missingLocations) {
 			mSharedLocations.remove(locationToRemove);
 		}
-		mFilesToProcess = null;
+		filesToProcess = null;
 	}
 }
 
