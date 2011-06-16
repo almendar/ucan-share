@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.networking;
+package kogut.tomasz.ucanShare.tools.networking;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

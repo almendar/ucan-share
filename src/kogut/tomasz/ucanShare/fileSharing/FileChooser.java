@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare;
+package kogut.tomasz.ucanShare.fileSharing;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -16,8 +16,11 @@ import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import kogut.tomasz.ucanShare.files.FileArrayAdapter;
-import kogut.tomasz.ucanShare.files.LocalFileDescriptor;
+import kogut.tomasz.ucanShare.GlobalData;
+import kogut.tomasz.ucanShare.R;
+import kogut.tomasz.ucanShare.R.layout;
+import kogut.tomasz.ucanShare.R.string;
+import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
 import android.app.Application;
 import android.app.ListActivity;
 import android.content.BroadcastReceiver;
@@ -70,16 +73,18 @@ public class FileChooser extends ListActivity {
 	@Override
 	public void onStop() {
 		super.onStop();
-		storeSharedPaths(mAdapter.getMarkedFilesCopy());
+	
 		Log.d(TAG,"[Stop]");
 	}
 
-//	/** Called when the activity looses focus **/
-//	@Override
-//	public void onPause() {
-//		super.onPause();
-//		Log.d(TAG,"[Pause]");
-//	}
+	/** Called when the activity looses focus **/
+	@Override
+	public void onPause() {
+		super.onPause();
+		storeSharedPaths(mAdapter.getMarkedFilesCopy());
+		Log.d(TAG,"[Pause]");
+		
+	}
 
 //	@Override
 //	protected void onResume() {
@@ -198,7 +203,7 @@ public class FileChooser extends ListActivity {
 		updateExternalStorageState();
 	}
 
-	static ArrayList<LocalFileDescriptor> readSharedPaths() {
+	public static ArrayList<LocalFileDescriptor> readSharedPaths() {
 
 		File f = android.os.Environment.getExternalStorageDirectory();
 		File shared_file = new File(f.getAbsoluteFile() + CACHE_DIR
@@ -217,7 +222,6 @@ public class FileChooser extends ListActivity {
 		} catch (StreamCorruptedException e) {
 			Log.w(TAG, e.getMessage());
 		} catch (IOException e) {
-
 			Log.w(TAG, e.getMessage());
 		} catch (ClassNotFoundException e) {
 			Log.w(TAG, e.getMessage());
@@ -233,15 +237,17 @@ public class FileChooser extends ListActivity {
 
 	}
 
+	
+	
+	
 	static void storeSharedPaths(ArrayList<LocalFileDescriptor> paths) {
 		File f = Environment.getExternalStorageDirectory();
 		File shared_file = new File(f.getAbsoluteFile() + CACHE_DIR
 				+ SHARED_PATHS_FILE_NAME);
-
 		try {
 
 			if (!shared_file.getParentFile().exists()) {
-				boolean ret = shared_file.getParentFile().mkdir();
+				boolean ret = shared_file.getParentFile().mkdirs();
 				Log.i(TAG, "Attempt to create directory for data was: "+ (ret ? "succes" : "failed"));
 			}
 

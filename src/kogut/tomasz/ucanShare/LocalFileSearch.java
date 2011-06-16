@@ -2,9 +2,9 @@ package kogut.tomasz.ucanShare;
 
 import java.util.ArrayList;
 
-import kogut.tomasz.ucanShare.files.FileDescription;
-import kogut.tomasz.ucanShare.files.LocalFileDescriptor;
-import kogut.tomasz.ucanShare.files.SharedFilesManager;
+import kogut.tomasz.ucanShare.tools.files.FileDescription;
+import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
+import kogut.tomasz.ucanShare.tools.files.SharedFilesManager;
 import android.R.anim;
 import android.app.Activity;
 import android.os.Bundle;
@@ -16,15 +16,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-public class SearchLocalFiles extends Activity {
+public class LocalFileSearch extends Activity {
 
-	private final static String TAG = SearchLocalFiles.class.getName();
+	private final static String TAG = LocalFileSearch.class.getName();
 	ArrayAdapter<String> adapter;
 	Button mStartSearch;
 	ListView mSeachResult;
 	EditText mSearchInput;
 	SharedFilesManager mFileSearcher;
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +34,8 @@ public class SearchLocalFiles extends Activity {
 		mStartSearch = (Button) findViewById(R.id.button1);
 		mSeachResult = (ListView) findViewById(R.id.list);
 		mFileSearcher = new SharedFilesManager();
-		adapter = new ArrayAdapter<String>(
-				SearchLocalFiles.this, R.layout.shared_files_list);
+		adapter = new ArrayAdapter<String>(LocalFileSearch.this,
+				R.layout.items_list);
 		adapter.setNotifyOnChange(true);
 		mSeachResult.setAdapter(adapter);
 		fill();
@@ -45,18 +44,19 @@ public class SearchLocalFiles extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				String text = mSearchInput.getText().toString();
-				Log.d(TAG,"Clicked on button. Text on texedit:" + text);
+				Log.d(TAG, "Clicked on button. Text on texedit:" + text);
 				adapter.clear();
 				adapter.add("Search for: " + text);
 				for (FileDescription s : mFileSearcher.findFiles(text)) {
 					adapter.add(s.getFileName());
 				}
-				Log.d(TAG,"Is adapter empty:" + adapter.isEmpty());
+				Log.d(TAG, "Is adapter empty:" + adapter.isEmpty());
 				adapter.notifyDataSetChanged();
 			}
 		});
 
 	}
+
 	private void fill() {
 		GlobalData gd = (GlobalData) getApplication();
 		ArrayList<LocalFileDescriptor> sharedPaths = gd.getSharedFolders();

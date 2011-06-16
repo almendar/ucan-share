@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.files;
+package kogut.tomasz.ucanShare.tools.files;
 
 import java.io.Serializable;
 

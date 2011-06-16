@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.networking;
+package kogut.tomasz.ucanShare.fileSearch;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,11 +7,14 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedList;
 
-import kogut.tomasz.ucanShare.files.FileDescription;
-import kogut.tomasz.ucanShare.networking.messages.SearchResultMessage;
+import android.util.Log;
+
+import kogut.tomasz.ucanShare.tools.files.FileDescription;
+import kogut.tomasz.ucanShare.tools.networking.TcpServer;
 
 public class SendSearchResultTask implements Runnable {
 
+	private final static String TAG = SendSearchResultTask.class.getName();
 	private LinkedList<FileDescription> mSearchResult;
 	ObjectOutputStream oos = null;
 	Socket mSocket = null;
@@ -33,7 +36,7 @@ public class SendSearchResultTask implements Runnable {
 			oos = new ObjectOutputStream(mSocket.getOutputStream());
 			oos.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.i(TAG, "Connection could not be stablished to send search result:" + adress.getHostAddress());
 		}
 	}
 

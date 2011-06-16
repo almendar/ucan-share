@@ -9,4 +9,5 @@
     <string name="yes">yes</string>
     <string name="no">no</string>
     <string name="menu_add_folder_to_share">Add to shared folders?</string>
+    <string name="search_net">Search for shared files</string>
 </resources>

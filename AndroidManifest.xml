@@ -14,13 +14,10 @@
 			</intent-filter>
 		</activity>
 		<activity android:name="BroadcastHandle" />
-		<activity android:name="FileChooser" />
+		<activity android:name="fileSharing.FileChooser" />
 		<activity android:name="SharedFolders" />
-		<activity android:name="SearchLocalFiles" />
-		<service android:name="kogut.tomasz.ucanShare.networking.NetworkingService" />
-
+		<activity android:name="LocalFileSearch" />
+		<activity android:name="fileSearch.NetworkSearch" />
+		<service android:name="NetworkingService" />
 	</application>
-
-
-
 </manifest>

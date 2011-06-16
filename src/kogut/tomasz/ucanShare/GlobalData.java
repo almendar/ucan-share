@@ -2,8 +2,9 @@ package kogut.tomasz.ucanShare;
 
 import java.util.ArrayList;
 
-import kogut.tomasz.ucanShare.files.LocalFileDescriptor;
-import kogut.tomasz.ucanShare.files.SharedFilesManager;
+import kogut.tomasz.ucanShare.fileSharing.FileChooser;
+import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
+import kogut.tomasz.ucanShare.tools.files.SharedFilesManager;
 
 import android.app.Application;
 import android.util.Log;
@@ -38,6 +39,12 @@ public class GlobalData extends Application {
 	}
 
 	public synchronized ArrayList<LocalFileDescriptor> getSharedFolders() {
+		
+		ArrayList<LocalFileDescriptor> tmp = FileChooser.readSharedPaths();
+		if(!mSharedFolders.equals(tmp)) {
+			mSharedFolders = tmp;
+			rebuildSharedFiles();
+		}
 		String msg = "Shared folders object returned: " + mSharedFolders
 				+ " has " + mSharedFolders.size() + " length";
 		Log.d(TAG, msg);

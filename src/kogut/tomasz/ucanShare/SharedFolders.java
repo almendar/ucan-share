@@ -2,7 +2,7 @@ package kogut.tomasz.ucanShare;
 
 import java.util.ArrayList;
 
-import kogut.tomasz.ucanShare.files.LocalFileDescriptor;
+import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -16,9 +16,15 @@ public class SharedFolders extends ListActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		refreshPaths();
+	}
 
-		ArrayList<LocalFileDescriptor> sharedFolders = FileChooser
-				.readSharedPaths();
+	/**
+	 * 
+	 */
+	private void refreshPaths() {
+		GlobalData gData = (GlobalData) getApplication();
+		ArrayList<LocalFileDescriptor> sharedFolders = gData.getSharedFolders();
 		ArrayList<String> sharedFilesStringRepresentation = new ArrayList<String>();
 		if (sharedFolders != null) {
 			for (LocalFileDescriptor desc : sharedFolders) {
@@ -26,8 +32,14 @@ public class SharedFolders extends ListActivity {
 			}
 		}
 		ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this,
-				R.layout.shared_files_list, R.id.share_files,
+				R.layout.items_list,
 				sharedFilesStringRepresentation);
 		setListAdapter(mAdapter);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		refreshPaths();
 	}
 }

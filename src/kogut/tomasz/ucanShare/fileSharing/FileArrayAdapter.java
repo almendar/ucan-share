@@ -1,9 +1,10 @@
-package kogut.tomasz.ucanShare.files;
+package kogut.tomasz.ucanShare.fileSharing;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import kogut.tomasz.ucanShare.R;
+import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
 
 import android.content.Context;
 import android.content.res.ColorStateList;

@@ -1,7 +1,8 @@
 package kogut.tomasz.ucanShare;
 
-import kogut.tomasz.ucanShare.networking.NetworkingService;
-import kogut.tomasz.ucanShare.networking.NetworkingService.LocalBinder;
+import kogut.tomasz.ucanShare.NetworkingService.LocalBinder;
+import kogut.tomasz.ucanShare.fileSearch.NetworkSearch;
+import kogut.tomasz.ucanShare.fileSharing.FileChooser;
 import android.app.TabActivity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -28,39 +29,35 @@ public class Ucan extends TabActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		Log.d(TAG,"[Pause]");
+		Log.d(TAG, "[Pause]");
 		unbindFromNetworkService();
 	}
 
-	
 	@Override
 	protected void onRestart() {
 		super.onRestart();
-		Log.d(TAG,"[Restart]");
+		Log.d(TAG, "[Restart]");
 	}
-	
-	
-	
-	
+
 	@Override
 	protected void onStop() {
 		super.onStop();
 		unbindFromNetworkService();
-		Log.d(TAG,"[Stop]");
+		Log.d(TAG, "[Stop]");
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.d(TAG,"[Resume]");
+		Log.d(TAG, "[Resume]");
 		bindToNetworkService();
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.d(TAG,"[Destroy]");
-		stopService(new Intent(this, NetworkingService.class));	
+		Log.d(TAG, "[Destroy]");
+		stopService(new Intent(this, NetworkingService.class));
 	}
 
 	private void unbindFromNetworkService() {
@@ -92,7 +89,7 @@ public class Ucan extends TabActivity {
 		intent = new Intent().setClass(this, FileChooser.class);
 
 		// Initialize a TabSpec for each tab and add it to the TabHost
-		spec = tabHost.newTabSpec("filechooser").setIndicator("File Chooser")
+		spec = tabHost.newTabSpec("filechooser").setIndicator("File\nChooser")
 				.setContent(intent);
 		tabHost.addTab(spec);
 
@@ -100,20 +97,26 @@ public class Ucan extends TabActivity {
 		intent = new Intent().setClass(this, SharedFolders.class);
 
 		// Initialize a TabSpec for each tab and add it to the TabHost
-		spec = tabHost.newTabSpec("Shared files").setIndicator("Shared files")
+		spec = tabHost.newTabSpec("Shared files").setIndicator("Shared\nfiles")
 				.setContent(intent);
 		tabHost.addTab(spec);
 
 		// Create an Intent to launch an Activity for the tab (to be reused)
-		intent = new Intent().setClass(this, SearchLocalFiles.class);
+		intent = new Intent().setClass(this, LocalFileSearch.class);
 
 		// Initialize a TabSpec for each tab and add it to the TabHost
-		spec = tabHost.newTabSpec("Local search").setIndicator("Local search")
+		spec = tabHost.newTabSpec("Local\nsearch").setIndicator("Local\nsearch")
 				.setContent(intent);
 		tabHost.addTab(spec);
+
+		// Create an Intent to launch an Activity for the tab (to be reused)
+		intent = new Intent().setClass(this, NetworkSearch.class);
+
+		// Initialize a TabSpec for each tab and add it to the TabHost
+		spec = tabHost.newTabSpec("Network search")
+				.setIndicator("Network\nsearch").setContent(intent);
+		tabHost.addTab(spec);
 	}
-
-
 
 	private final static String TAG = Ucan.class.getName();
 	private NetworkingService mService;

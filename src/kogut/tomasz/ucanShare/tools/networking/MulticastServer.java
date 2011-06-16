@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.networking;
+package kogut.tomasz.ucanShare.tools.networking;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +13,7 @@ import java.net.MulticastSocket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
-import kogut.tomasz.ucanShare.networking.messages.SearchRequest;
+import kogut.tomasz.ucanShare.fileSearch.SearchRequest;
 
 import android.content.Context;
 import android.test.IsolatedContext;
@@ -64,7 +64,7 @@ public class MulticastServer {
 		return ret;
 	}
 
-	void listenToBroadcast() {
+	public void listenToBroadcast() {
 		
 		
 		new Thread(new Runnable() {

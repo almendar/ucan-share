@@ -1,9 +1,9 @@
-package kogut.tomasz.ucanShare.networking.messages;
+package kogut.tomasz.ucanShare.fileSearch;
 
 import java.io.Serializable;
 import java.util.LinkedList;
 
-import kogut.tomasz.ucanShare.files.FileDescription;
+import kogut.tomasz.ucanShare.tools.files.FileDescription;
 
 public class SearchResultMessage implements Serializable {
 	/**
