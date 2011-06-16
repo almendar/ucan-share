@@ -1,11 +1,14 @@
-package kogut.tomasz.ucanShare.networking;
+package kogut.tomasz.ucanShare.networking.messages;
 
 import java.io.Serializable;
 
-public class Message implements Serializable {
+public class DataChunkMessage implements Serializable {
 	private static final long serialVersionUID = -364426092756113007L;
 
-	public Message(String filename, byte[] data, int nrOfBytes, long offset) {
+
+
+	public DataChunkMessage(String filename, byte[] data, int nrOfBytes,
+			long offset) {
 		mFilename = filename;
 		mOffset = offset;
 		if (data.length != nrOfBytes) {

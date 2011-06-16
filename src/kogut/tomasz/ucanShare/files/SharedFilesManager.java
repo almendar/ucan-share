@@ -35,6 +35,13 @@ public class SharedFilesManager {
 
 	}
 
+	
+	public void reset() {
+		mSharedFiles.clear();
+		mSharedLocations.clear();
+		filesToProcess.clear();
+	}
+	
 	public void addLocation(String location) {
 		// Check if path is sub-path of any other already added.
 		LinkedList<String> toRemove = new LinkedList<String>();
@@ -53,7 +60,7 @@ public class SharedFilesManager {
 		}
 		for (String locationToRemove : toRemove) {
 			mSharedLocations.remove(locationToRemove);
-			System.out.printf("Location removed:%s\n", locationToRemove);
+//			System.out.printf("Location removed:%s\n", locationToRemove);
 		}
 	}
 

@@ -57,7 +57,6 @@ public class SearchLocalFiles extends Activity {
 		});
 
 	}
-
 	private void fill() {
 		GlobalData gd = (GlobalData) getApplication();
 		ArrayList<LocalFileDescriptor> sharedPaths = gd.getSharedFolders();

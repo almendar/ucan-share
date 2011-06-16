@@ -2,21 +2,14 @@ package kogut.tomasz.ucanShare;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
-import java.util.Enumeration;
 import java.util.Random;
 
 import kogut.tomasz.ucanShare.networking.NetworkInfo;
-
 import android.app.Activity;
 import android.content.Context;
-import android.net.DhcpInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -80,15 +73,17 @@ public class BroadcastHandle extends Activity {
 
 		@Override
 		public void run() {
-			final String myIpAdress = mNetworkInfo.getLocalIpAdress();
+			final String myIpAdress = mNetworkInfo
+					.getLocalIpAdressTextRepresentation();
 			while (true) {
 				mCounter = new Random().nextInt();
-				DatagramPacket packet = new DatagramPacket(Integer.toString(mCounter).getBytes(), 4,
+				DatagramPacket packet = new DatagramPacket(Integer.toString(
+						mCounter).getBytes(), 4,
 						mNetworkInfo.getBroadcastAdress(), PORT);
 				try {
 					mMulticastSocket.send(packet);
 					Thread.sleep(2000);
-					
+
 					mHandler.post(new Runnable() {
 
 						@Override
@@ -120,12 +115,12 @@ public class BroadcastHandle extends Activity {
 				try {
 					mMulticastSocket.setSoTimeout(1500);
 					mMulticastSocket.receive(packet);
-					//mMsg = packet.getAddress().getHostAddress();
+					// mMsg = packet.getAddress().getHostAddress();
 					mMsg = new String(data);
 				} catch (SocketTimeoutException timout) {
 					mMsg = "Tomuœ znikn¹³";
 				}
-				
+
 				catch (SocketException SockE) {
 					SockE.printStackTrace();
 				} catch (IOException IOe) {
@@ -133,7 +128,6 @@ public class BroadcastHandle extends Activity {
 					IOe.printStackTrace();
 				}
 
-				
 				mHandler.post(new Runnable() {
 
 					@Override

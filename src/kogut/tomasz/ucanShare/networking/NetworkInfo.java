@@ -14,9 +14,9 @@ import android.util.Log;
 public class NetworkInfo {
 
 	private Context mContext;
-	private final static String LOG_TAG = NetworkInfo.class.toString();
+	private final static String TAG = NetworkInfo.class.getName();
 	private InetAddress mBroadcastAdress;
-	private String mLocalIpAdress;
+	private InetAddress mLocalIpAdress;
 
 	public NetworkInfo(Context context) {
 		mContext = context;
@@ -28,8 +28,20 @@ public class NetworkInfo {
 		return mBroadcastAdress;
 	}
 
-	public String getLocalIpAdress() {
+	public InetAddress getLocalIpAdress() {
 		return mLocalIpAdress;
+	}
+
+	public String getBroadcastAdressTextRepresentation() {
+		return mBroadcastAdress.getHostAddress().toString();
+	}
+
+	public String getLocalIpAdressTextRepresentation() {
+		if (mLocalIpAdress != null) {
+			return mLocalIpAdress.getHostAddress().toString();
+		}
+		else
+			return null;
 	}
 
 	private void resolveBroadcastAddress() {
@@ -44,7 +56,7 @@ public class NetworkInfo {
 			try {
 				mBroadcastAdress = InetAddress.getByAddress(quads);
 			} catch (UnknownHostException e) {
-				Log.d(LOG_TAG, e.toString());
+				Log.d(TAG, e.toString());
 				mBroadcastAdress = null;
 			}
 		} else {
@@ -62,14 +74,14 @@ public class NetworkInfo {
 						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
 					InetAddress inetAddress = enumIpAddr.nextElement();
 					if (!inetAddress.isLoopbackAddress()) {
-						mLocalIpAdress = inetAddress.getHostAddress()
-								.toString();
+						mLocalIpAdress = inetAddress;
 					}
 				}
 			}
 		} catch (SocketException ex) {
-			Log.e(LOG_TAG, ex.toString());
+			Log.e(TAG, ex.toString());
+			mLocalIpAdress = null;
 		}
-		mLocalIpAdress = null;
+
 	}
 }

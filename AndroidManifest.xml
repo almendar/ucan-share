@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="kogut.tomasz.ucanShare"
-      android:versionCode="1"
-      android:versionName="1.0" android:installLocation="auto">
-    <!-- <uses-sdk android:minSdkVersion="4" />  -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
-    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true" android:name="GlobalData">
-        <activity android:name="Ucan" android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"></action>
-                <category android:name="android.intent.category.LAUNCHER"></category>
-            </intent-filter>
-        </activity>
-        <activity android:name="BroadcastHandle"/>
-        <activity android:name="FileChooser"/>
-        <activity android:name="SharedFolders" />
-        <activity android:name="SearchLocalFiles" />
-    </application>
-    
- 
-    
+	package="kogut.tomasz.ucanShare" android:versionCode="1"
+	android:versionName="1.0" android:installLocation="auto">
+	<!-- <uses-sdk android:minSdkVersion="4" /> -->
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+	<application android:icon="@drawable/icon" android:label="@string/app_name"
+		android:debuggable="true" android:name="GlobalData">
+		<activity android:name="Ucan" android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"></action>
+				<category android:name="android.intent.category.LAUNCHER"></category>
+			</intent-filter>
+		</activity>
+		<activity android:name="BroadcastHandle" />
+		<activity android:name="FileChooser" />
+		<activity android:name="SharedFolders" />
+		<activity android:name="SearchLocalFiles" />
+		<service android:name="kogut.tomasz.ucanShare.networking.NetworkingService" />
+
+	</application>
+
+
+
 </manifest>
