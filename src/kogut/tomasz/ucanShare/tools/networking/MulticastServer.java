@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.networking;
+package kogut.tomasz.ucanShare.tools.networking;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +13,7 @@ import java.net.MulticastSocket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
-import kogut.tomasz.ucanShare.networking.messages.SearchRequest;
+import kogut.tomasz.ucanShare.fileSearch.SearchRequest;
 
 import android.content.Context;
 import android.test.IsolatedContext;
@@ -64,32 +64,7 @@ public class MulticastServer {
 		return ret;
 	}
 
-	void listenToBroadcast() {
-		
-		
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				int i=0;
-				while(true) {
-					i++;
-					SearchRequest request = new SearchRequest("qwe"+i, mNetworkInfo.getLocalIpAdress());
-					sendBroadcast(request);
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		}).start();
-		
-		
-		
-		
-		
+	public void listenToBroadcast() {		
 		if (listeningToBroadcast)
 			return;
 		listeningToBroadcast = true;
@@ -102,7 +77,7 @@ public class MulticastServer {
 				mSocket.setSoTimeout(1500);
 				mSocket.receive(packet);
 				final InetAddress senderIp = packet.getAddress();
-				if (!myIp.equals(senderIp)) {
+				if (myIp.equals(senderIp)) {
 					Log.d(TAG, "Ignoring broadcast from myself.");
 					continue;
 				} else {
@@ -125,6 +100,7 @@ public class MulticastServer {
 
 	public void stopListeningToBroadcast() {
 		listeningToBroadcast = false;
+		mSocket.close();
 	}
 
 	public void sendBroadcast(SearchRequest msg) {

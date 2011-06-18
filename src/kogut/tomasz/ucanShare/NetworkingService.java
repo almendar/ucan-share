@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.networking;
+package kogut.tomasz.ucanShare;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -10,11 +10,14 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import kogut.tomasz.ucanShare.GlobalData;
-import kogut.tomasz.ucanShare.files.FileDescription;
-import kogut.tomasz.ucanShare.files.SharedFilesManager;
-import kogut.tomasz.ucanShare.networking.messages.SearchRequest;
-import kogut.tomasz.ucanShare.networking.messages.SearchResultMessage;
+import kogut.tomasz.ucanShare.fileSearch.ProcessFileQueries;
+import kogut.tomasz.ucanShare.fileSearch.SearchRequest;
+import kogut.tomasz.ucanShare.fileSearch.SearchResultMessage;
+import kogut.tomasz.ucanShare.fileSearch.SendSearchResultTask;
+import kogut.tomasz.ucanShare.tools.files.FileDescription;
+import kogut.tomasz.ucanShare.tools.files.SharedFilesManager;
+import kogut.tomasz.ucanShare.tools.networking.MulticastServer;
+import kogut.tomasz.ucanShare.tools.networking.NetworkInfo;
 
 import android.app.Service;
 import android.content.Intent;
@@ -29,7 +32,7 @@ public class NetworkingService extends Service {
 	final int MAX_SEARCH_REQUESTS = 10;
 	BlockingQueue<SearchRequest> mFileSearchRequests = new ArrayBlockingQueue<SearchRequest>(
 			MAX_SEARCH_REQUESTS);
-
+	private NetworkInfo mNetworkInfo;
 	private final IBinder mBinder = new LocalBinder();
 	private MulticastServer mMulticastServer;
 	private Hashtable<String, List<SearchResultMessage>> mSearchResults;
@@ -56,6 +59,7 @@ public class NetworkingService extends Service {
 		}
 		mQueriesProcessor = new ProcessFileQueries(gd.getFilesManager(),
 				mFileSearchRequests);
+		mNetworkInfo = new NetworkInfo(getApplicationContext());
 		new Thread(mQueriesProcessor).start();
 		new Thread(rcvFileQueries).start();
 
@@ -63,6 +67,7 @@ public class NetworkingService extends Service {
 
 	@Override
 	public IBinder onBind(Intent arg0) {
+		Log.d(TAG,"Bind request");
 		return mBinder;
 	}
 
@@ -85,6 +90,12 @@ public class NetworkingService extends Service {
 		mMulticastServer.stopListeningToBroadcast();
 	}
 
+	public void sendSearchRequest(String fileNameSearch) {
+		SearchRequest sr = new SearchRequest(fileNameSearch,
+				mNetworkInfo.getLocalIpAdress());
+		mMulticastServer.sendBroadcast(sr);
+	}
+
 	public void showServiceToast() {
 		Toast.makeText(getApplicationContext(),
 				"NetworkingService toast! Cheers!", Toast.LENGTH_SHORT).show();
@@ -104,45 +115,4 @@ public class NetworkingService extends Service {
 
 }
 
-class ProcessFileQueries implements Runnable {
 
-	private final String TAG = ProcessFileQueries.class.getName();
-	private volatile boolean running = false;
-	private SharedFilesManager mFileManager;
-	private BlockingQueue<SearchRequest> mSearchRequests;
-
-	public ProcessFileQueries(SharedFilesManager fileManager,
-			BlockingQueue<SearchRequest> searchRequests) {
-		mFileManager = fileManager;
-		mSearchRequests = searchRequests;
-	}
-
-	@Override
-	public void run() {
-		running = true;
-		while (running) {
-			SearchRequest request=null;
-			try {
-				request = mSearchRequests.take();
-				Log.d(TAG, "Servicing broadcast from: "
-						+ request.getSenderAdress().getHostAddress());
-				final LinkedList<FileDescription> searchResult = mFileManager
-						.findFiles(request.getFileName());
-				SendSearchResultTask sendAnswerTask = new SendSearchResultTask(
-						request.getSenderAdress(), searchResult,
-						request.getFileName());
-				Thread t = new Thread(sendAnswerTask);
-				t.start();
-			} catch(ConnectException e) {
-				Log.i(TAG, "Couldn't send search result to client: " + e.getLocalizedMessage());
-			}
-			
-			
-			catch (IOException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) { 
-				e.printStackTrace();
-			}
-		}
-	}
-}

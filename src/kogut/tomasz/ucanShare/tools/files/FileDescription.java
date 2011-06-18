@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.files;
+package kogut.tomasz.ucanShare.tools.files;
 
 import java.io.Serializable;
 
@@ -23,6 +23,13 @@ public class FileDescription implements Serializable {
 
 	public long getFileSize() {
 		return mFileSize;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder bs =new StringBuilder();
+		bs.append(getFileName()).append("\nsize:").append(getFileSize());
+		return bs.toString();
 	}
 
 	private final int mId;

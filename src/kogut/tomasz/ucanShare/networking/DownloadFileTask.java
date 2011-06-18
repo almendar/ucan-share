@@ -12,9 +12,10 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import kogut.tomasz.ucanShare.files.FileDescription;
 import kogut.tomasz.ucanShare.networking.messages.DataChunkMessage;
 import kogut.tomasz.ucanShare.networking.messages.NegotationMessage;
+import kogut.tomasz.ucanShare.tools.files.FileDescription;
+import kogut.tomasz.ucanShare.tools.networking.TcpServer;
 import android.os.Environment;
 
 /**

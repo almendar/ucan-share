@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.files;
+package kogut.tomasz.ucanShare.tools.files;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 public class SharedFilesManager {
 	private final static Logger log = Logger.getLogger(SharedFilesManager.class
@@ -28,7 +29,6 @@ public class SharedFilesManager {
 			new ExtenstionFilter(MUSIC_EXTENSTIONS),
 			new ExtenstionFilter(DOCUMENT_EXTENSIONS),
 			new ExtenstionFilter(IMAGE_EXTENSTIONS) };
-
 	Stack<File> filesToProcess = new Stack<File>();
 
 	public SharedFilesManager() {
@@ -130,7 +130,7 @@ public class SharedFilesManager {
 		for (String locationToRemove : missingLocations) {
 			mSharedLocations.remove(locationToRemove);
 		}
-		filesToProcess = null;
+		filesToProcess.clear();
 	}
 }
 

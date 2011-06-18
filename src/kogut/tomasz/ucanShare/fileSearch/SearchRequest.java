@@ -1,4 +1,4 @@
-package kogut.tomasz.ucanShare.networking.messages;
+package kogut.tomasz.ucanShare.fileSearch;
 
 import java.io.Serializable;
 import java.net.InetAddress;
