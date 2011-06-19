@@ -17,6 +17,7 @@ import kogut.tomasz.ucanShare.networking.messages.NegotationMessage;
 import kogut.tomasz.ucanShare.tools.files.FileDescription;
 import kogut.tomasz.ucanShare.tools.networking.TcpServer;
 import android.os.Environment;
+import android.util.Log;
 
 /**
  * @author tomek
@@ -24,6 +25,7 @@ import android.os.Environment;
  */
 public class DownloadFileTask implements Runnable {
 
+	private final static String TAG = DownloadFileTask.class.getName();
 	ObjectOutputStream oos = null;
 	ObjectInputStream ois = null;
 	Socket mSocket = null;
@@ -42,45 +44,64 @@ public class DownloadFileTask implements Runnable {
 		File downloadDir = Environment
 				.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 		File fileToSave = new File(downloadDir.getAbsolutePath()
-				+ File.pathSeparatorChar + mFileDescription.getFileName());
+				+ File.separatorChar + mFileDescription.getFileName());
 		RandomAccessFile raf = null;
 		try {
+			Log.d(TAG,
+					"Trying to download file:" + fileToSave.getAbsolutePath());
 			mSocket = new Socket(adress, TcpServer.FILE_TRANSFER_PORT);
 			oos = new ObjectOutputStream(mSocket.getOutputStream());
 			ois = new ObjectInputStream(mSocket.getInputStream());
 			raf = new RandomAccessFile(fileToSave, "rw");
+			Log.d(TAG, "Streams opened");
 			sendRequestForFile();
 			Object serverAnswer = ois.readObject();
+			Log.d(TAG, "Request for file send and have answer");
 			if (serverAnswer instanceof NegotationMessage) {
 				NegotationMessage answer = (NegotationMessage) serverAnswer;
-				if (answer.getType() != NegotationMessage.ACCEPT) {
-					// /this is a problem, handle this TODO
+				if (answer.getType() == NegotationMessage.ACCEPT) {
+					Log.d(TAG, "Answer was ACCEPT");
+					while (true) {
+						DataChunkMessage dataChunk = (DataChunkMessage) ois
+								.readObject();
+						Log.d(TAG, "Length" + dataChunk.mData.length + " offset" + dataChunk.mOffset);
+						raf.seek(dataChunk.mOffset);
+						raf.write(dataChunk.mData, 0,
+								dataChunk.mData.length);
+					}
 				}
-			} else {
-
-				// this is also bad
+				else {
+					Log.d(TAG, "Answer was not good");
+					// A missunderstanding
+				}
+			}
+			else {
+				Log.d(TAG, "Wrongf object");
+				// this is also bad TODO
 			}
 
-			while (true) {
-				DataChunkMessage dataChunk = (DataChunkMessage) ois
-						.readObject();
-				raf.write(dataChunk.mData, (int) dataChunk.mOffset, dataChunk.mData.length);
-			}
-
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+			Log.d(TAG, "Download completed");
+			//end
+		}
+		catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
+			Log.d(TAG, e.getLocalizedMessage());
+		}
+		finally {
 			try {
-				raf.close();
+				if (raf != null) {
+					raf.close();
+				}
 				oos.close();
 				ois.close();
-			} catch (IOException e) {
+				mSocket.close();
+			}
+			catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.d(TAG, e.getLocalizedMessage());
 			}
 		}
 	}

@@ -1,10 +1,13 @@
 package kogut.tomasz.ucanShare;
 
+import java.io.File;
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 import kogut.tomasz.ucanShare.fileSharing.FileChooser;
 import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
 import kogut.tomasz.ucanShare.tools.files.SharedFilesManager;
+import kogut.tomasz.ucanShare.tools.networking.NetworkInfo;
 
 import android.app.Application;
 import android.util.Log;
@@ -13,14 +16,15 @@ public class GlobalData extends Application {
 
 	private static ArrayList<LocalFileDescriptor> mSharedFolders = new ArrayList<LocalFileDescriptor>();
 	private static SharedFilesManager sharedFilesManger = new SharedFilesManager();
-	private final String TAG = GlobalData.class.getName();
+	private final static String TAG = GlobalData.class.getName();
 
 	public GlobalData() {
 		mSharedFolders = FileChooser.readSharedPaths();
+
 		rebuildSharedFiles();
 	}
 
-	private void rebuildSharedFiles() {
+	private static void rebuildSharedFiles() {
 		sharedFilesManger.reset();
 		for (LocalFileDescriptor location : mSharedFolders) {
 			sharedFilesManger.addLocation(location.getPath());
@@ -28,7 +32,8 @@ public class GlobalData extends Application {
 		sharedFilesManger.buildDatabase();
 	}
 
-	public synchronized void setSharedFolders(
+	
+	public static synchronized void setSharedFolders(
 			ArrayList<LocalFileDescriptor> sharedFolders) {
 		mSharedFolders.clear();
 		mSharedFolders.addAll(sharedFolders);
@@ -37,8 +42,12 @@ public class GlobalData extends Application {
 				+ mSharedFolders.size() + " length";
 		Log.d(TAG, msg);
 	}
+	
+	public static synchronized File getFileById(int id) {
+		return sharedFilesManger.getById(id);
+	}
 
-	public synchronized ArrayList<LocalFileDescriptor> getSharedFolders() {
+	public static synchronized ArrayList<LocalFileDescriptor> getSharedFolders() {
 		
 		ArrayList<LocalFileDescriptor> tmp = FileChooser.readSharedPaths();
 		if(!mSharedFolders.equals(tmp)) {

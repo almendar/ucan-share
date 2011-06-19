@@ -4,19 +4,24 @@ import java.io.IOException;
 import java.io.OptionalDataException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
 import kogut.tomasz.ucanShare.NetworkingService;
 import kogut.tomasz.ucanShare.NetworkingService.LocalBinder;
 import kogut.tomasz.ucanShare.R;
+import kogut.tomasz.ucanShare.networking.DownloadFileTask;
 import kogut.tomasz.ucanShare.tools.files.FileDescription;
+import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
 import kogut.tomasz.ucanShare.tools.networking.NetworkConnection;
 import kogut.tomasz.ucanShare.tools.networking.TcpServer;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -25,6 +30,8 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,6 +50,7 @@ public class NetworkSearch extends Activity {
 
 	ProgressBar mProgress;
 	private Handler mHandler = new Handler();
+	private ServiceConnection mConnection = new NetworkingServiceConnection();
 	Button mStartSearch;
 	ListView mSeachResultDisplay;
 	EditText mSearchInput;
@@ -56,6 +64,7 @@ public class NetworkSearch extends Activity {
 		mBound = false;
 		bindToNetworkService();
 		mStartSearch.setOnClickListener(new SearchActionTask());
+		mSeachResultDisplay.setOnItemClickListener(new SearchResultPick());
 	}
 
 	@Override
@@ -81,22 +90,27 @@ public class NetworkSearch extends Activity {
 				waitForResults();
 				Log.d(TAG, "End waiting");
 				mHandler.post(new Runnable() {
-					
+
 					@Override
 					public void run() {
 						if (mSearchResult.size() > 0) {
 							for (SearchResultMessage anser : mSearchResult) {
-								for (FileDescription desc : anser.getSearchResult()) {
+								for (FileDescription desc : anser
+										.getSearchResult()) {
 									mAdapter.add(desc);
 								}
 							}
-							Toast.makeText(NetworkSearch.this, "Adapter has objects:"+mAdapter.getCount(), Toast.LENGTH_SHORT).show();
+							Toast.makeText(
+									NetworkSearch.this,
+									"Adapter has objects:"
+											+ mAdapter.getCount(),
+									Toast.LENGTH_SHORT).show();
 
 						}
-						
+
 					}
 				});
-		
+
 			}
 
 			/**
@@ -148,8 +162,6 @@ public class NetworkSearch extends Activity {
 		}
 
 	}
-
-	private ServiceConnection mConnection = new NetworkingServiceConnection();
 
 	private final class NetworkingServiceConnection implements
 			ServiceConnection {
@@ -267,7 +279,7 @@ public class NetworkSearch extends Activity {
 		 * @throws IOException
 		 */
 		private void startListeningForAnswers() throws IOException {
-//			mSearchResult = new LinkedList<SearchResultMessage>();
+			// mSearchResult = new LinkedList<SearchResultMessage>();
 			mResultsReady = false;
 			mSearchResultServer = new SearchResultsGatherer();
 			Thread t = new Thread(mSearchResultServer);
@@ -287,6 +299,82 @@ public class NetworkSearch extends Activity {
 					progressDialog.show();
 				}
 			});
+		}
+	}
+
+	private final class SearchResultPick implements OnItemClickListener {
+
+		private final class DownloadFileCancel implements
+				DialogInterface.OnClickListener {
+			@Override
+			public void onClick(DialogInterface arg0, int arg1) {
+
+			}
+		}
+
+		private final class DownloadFileConfirm implements
+				DialogInterface.OnClickListener {
+			private final FileDescription fd;
+
+			private DownloadFileConfirm(FileDescription fd) {
+				this.fd = fd;
+
+			}
+
+			@Override
+			public void onClick(DialogInterface arg0, int arg1) {
+				for (SearchResultMessage ns : mSearchResult) {
+					for (FileDescription iterFd : ns.getSearchResult()) {
+						if (iterFd.equals(fd)) {
+							DownloadFileTask dft;
+							try {
+								dft = new DownloadFileTask(ns.getFrom(), fd);
+								new Thread(dft).start();
+							}
+							catch (UnknownHostException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							// Toast.makeText(NetworkSearch.this,
+							// iterFd.getFileName()+"from"+ns.getFrom().getHostName(),
+							// Toast.LENGTH_SHORT).show();
+						}
+					}
+				}
+			}
+		}
+
+		@Override
+		public void onItemClick(AdapterView<?> adapter, View textView,
+				int postition, long id) {
+			StringBuilder sb = new StringBuilder();
+			final FileDescription fd = mAdapter.getItem(postition);
+			sb.append("Position:").append(postition).append(" id:").append(id)
+					.append(" item:").append(fd.getFileName());
+			AlertDialog.Builder builder = buildConfigDownloadDialog(fd);
+			builder.create().show();
+		}
+
+		/**
+		 * @param fd
+		 * @return
+		 */
+		private AlertDialog.Builder buildConfigDownloadDialog(
+				final FileDescription fd) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(
+					NetworkSearch.this)
+					.setTitle(
+							"Do you want to download file " + fd.getFileName()
+									+ "?")
+					.setCancelable(false)
+					.setPositiveButton(getText(R.string.yes),
+							new DownloadFileConfirm(fd))
+					.setNegativeButton(R.string.no, new DownloadFileCancel());
+			return builder;
 		}
 	}
 
