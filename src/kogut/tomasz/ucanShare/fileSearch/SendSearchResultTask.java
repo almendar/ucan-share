@@ -12,41 +12,43 @@ import android.util.Log;
 import android.widget.Toast;
 
 import kogut.tomasz.ucanShare.tools.files.FileDescription;
+import kogut.tomasz.ucanShare.tools.networking.NetworkInfo;
 import kogut.tomasz.ucanShare.tools.networking.TcpServer;
 
 public class SendSearchResultTask implements Runnable {
 
 	private final static String TAG = SendSearchResultTask.class.getName();
 	private LinkedList<FileDescription> mSearchResult;
+	NetworkInfo mNetworkInfo;
 	ObjectOutputStream oos = null;
 	Socket mSocket = null;
-	private InetAddress adress;
+	private InetAddress mToAdress;
 	private final String query;
 
-	public SendSearchResultTask(InetAddress adress,
+	public SendSearchResultTask(InetAddress toAdress,
 			LinkedList<FileDescription> searchResult, String query)
 			throws IOException {
 		mSearchResult = searchResult;
-		this.adress = adress;
+		this.mToAdress = toAdress;
 		this.query = query;
 	}
 
 	@Override
 	public void run() {
 		try {
-			mSocket = new Socket(adress, TcpServer.SEARCH_PORT);
-			SearchResultMessage srm = new SearchResultMessage(mSearchResult,
+			mSocket = new Socket(mToAdress, TcpServer.SEARCH_PORT);
+			SearchResultMessage srm = new SearchResultMessage(mSocket.getLocalAddress(),mSearchResult,
 					this.query);
 			oos = new ObjectOutputStream(mSocket.getOutputStream());
 			oos.writeObject(srm);
 			oos.flush();
-			Log.d(TAG, "Sent search result to:"+adress.getHostAddress()+ " with matches:"+mSearchResult.size());
+			Log.d(TAG, "Sent search result to:"+mToAdress.getHostAddress()+ " with matches:"+mSearchResult.size());
 			Thread.sleep(300);
 		}
 		catch (IOException e) {
 			Log.i(TAG,
 					"Connection could not be stablished to send search result:"
-							+ adress.getHostAddress());
+							+ mToAdress.getHostAddress());
 		}
 		catch (InterruptedException e) {
 			// TODO Auto-generated catch block

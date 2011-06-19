@@ -107,7 +107,10 @@ public class SharedFilesManager {
 	}
 
 	public File getById(int id) {
-		return mSharedFiles.get(id);
+		if (mSharedFiles.containsKey(id)) {
+			return mSharedFiles.get(id);
+		}
+		return null;
 	}
 
 	public void buildDatabase() {

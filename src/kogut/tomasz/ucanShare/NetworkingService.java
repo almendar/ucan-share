@@ -14,6 +14,7 @@ import kogut.tomasz.ucanShare.fileSearch.ProcessFileQueries;
 import kogut.tomasz.ucanShare.fileSearch.SearchRequest;
 import kogut.tomasz.ucanShare.fileSearch.SearchResultMessage;
 import kogut.tomasz.ucanShare.fileSearch.SendSearchResultTask;
+import kogut.tomasz.ucanShare.fileUpload.FileUploader;
 import kogut.tomasz.ucanShare.tools.files.FileDescription;
 import kogut.tomasz.ucanShare.tools.files.SharedFilesManager;
 import kogut.tomasz.ucanShare.tools.networking.MulticastServer;
@@ -44,6 +45,7 @@ public class NetworkingService extends Service {
 	};
 
 	private ProcessFileQueries mQueriesProcessor;
+	private FileUploader mFileUploder;
 
 	@Override
 	public void onCreate() {
@@ -53,21 +55,22 @@ public class NetworkingService extends Service {
 		try {
 			mMulticastServer = new MulticastServer(getApplicationContext(),
 					mFileSearchRequests);
-
-		} catch (IOException e) {
-			Log.w(TAG, "Could not create multicast server");
+			mFileUploder = new FileUploader();
+		}
+		catch (IOException e) {
+			Log.w(TAG, "Could not create servers");
 		}
 		mQueriesProcessor = new ProcessFileQueries(gd.getFilesManager(),
 				mFileSearchRequests);
 		mNetworkInfo = new NetworkInfo(getApplicationContext());
 		new Thread(mQueriesProcessor).start();
 		new Thread(rcvFileQueries).start();
-
+		new Thread(mFileUploder).start();
 	}
 
 	@Override
 	public IBinder onBind(Intent arg0) {
-		Log.d(TAG,"Bind request");
+		Log.d(TAG, "Bind request");
 		return mBinder;
 	}
 
@@ -114,5 +117,3 @@ public class NetworkingService extends Service {
 	}
 
 }
-
-
