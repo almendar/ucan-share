@@ -7,9 +7,10 @@ import java.util.ArrayList;
 import kogut.tomasz.ucanShare.fileSharing.FileChooser;
 import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
 import kogut.tomasz.ucanShare.tools.files.SharedFilesManager;
-import kogut.tomasz.ucanShare.tools.networking.NetworkInfo;
+import kogut.tomasz.ucanShare.tools.networking.NetworkingInformation;
 
 import android.app.Application;
+import android.content.Intent;
 import android.util.Log;
 
 public class GlobalData extends Application {
@@ -18,6 +19,22 @@ public class GlobalData extends Application {
 	private static SharedFilesManager sharedFilesManger = new SharedFilesManager();
 	private final static String TAG = GlobalData.class.getName();
 
+	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+
+
+//		startService(new Intent(this, NetworkingService.class));
+	}
+	
+	@Override
+	public void onTerminate() {
+		super.onTerminate();
+		stopService(new Intent(this, NetworkingService.class));
+	}
+	
+	
 	public GlobalData() {
 		mSharedFolders = FileChooser.readSharedPaths();
 

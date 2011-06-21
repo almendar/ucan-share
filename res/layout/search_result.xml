@@ -10,7 +10,7 @@
 		android:layout_height="wrap_content" android:layout_width="match_parent">
 		<EditText android:id="@+id/search_box" android:layout_height="wrap_content"
 			android:layout_width="wrap_content" android:layout_weight="1"
-			android:text="Search..." />
+			android:text="Search..." android:selectAllOnFocus="true"/>
 		<Button android:text="Search..." android:id="@+id/button1"
 			android:layout_width="wrap_content" android:layout_height="wrap_content" />
 	</LinearLayout>

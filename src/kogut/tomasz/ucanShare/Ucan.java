@@ -8,12 +8,17 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.TabHost;
 
 public class Ucan extends TabActivity {
+
+	private boolean mWiFiWorking = false;
 
 	/** Called when the activity is first created. */
 
@@ -22,8 +27,9 @@ public class Ucan extends TabActivity {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "[Create]");
 		setContentView(R.layout.main);
+		
 		createTabs();
-		startService(new Intent(this, NetworkingService.class));
+		// startService(new Intent(this, NetworkingService.class));
 	}
 
 	@Override
@@ -50,14 +56,23 @@ public class Ucan extends TabActivity {
 	protected void onResume() {
 		super.onResume();
 		Log.d(TAG, "[Resume]");
-		bindToNetworkService();
+		if (!isUsingWiFi()) {
+			mWiFiWorking = false;
+			startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
+		}
+		else {
+			mWiFiWorking = true;
+			startService(new Intent(this, NetworkingService.class));
+			bindToNetworkService();
+		}
+		
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.d(TAG, "[Destroy]");
-		stopService(new Intent(this, NetworkingService.class));
+		// stopService(new Intent(this, NetworkingService.class));
 	}
 
 	private void unbindFromNetworkService() {
@@ -71,9 +86,11 @@ public class Ucan extends TabActivity {
 	}
 
 	private void bindToNetworkService() {
-		Intent intent = new Intent(this, NetworkingService.class);
-		mBound = bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-		Log.d(TAG, "Network service was bound");
+		if (mWiFiWorking) {
+			Intent intent = new Intent(this, NetworkingService.class);
+			mBound = bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+			Log.d(TAG, "Network service was bound");
+		}
 	}
 
 	/**
@@ -105,8 +122,8 @@ public class Ucan extends TabActivity {
 		intent = new Intent().setClass(this, LocalFileSearch.class);
 
 		// Initialize a TabSpec for each tab and add it to the TabHost
-		spec = tabHost.newTabSpec("Local\nsearch").setIndicator("Local\nsearch")
-				.setContent(intent);
+		spec = tabHost.newTabSpec("Local\nsearch")
+				.setIndicator("Local\nsearch").setContent(intent);
 		tabHost.addTab(spec);
 
 		// Create an Intent to launch an Activity for the tab (to be reused)
@@ -115,6 +132,14 @@ public class Ucan extends TabActivity {
 		// Initialize a TabSpec for each tab and add it to the TabHost
 		spec = tabHost.newTabSpec("Network search")
 				.setIndicator("Network\nsearch").setContent(intent);
+		tabHost.addTab(spec);
+
+		//
+		// Create an Intent to launch an Activity for the tab (to be reused)
+		intent = new Intent().setClass(this, ActiveDownloads.class);
+		// Initialize a TabSpec for each tab and add it to the TabHost
+		spec = tabHost.newTabSpec("Active\ndownloads")
+				.setIndicator("Active\ndownloads").setContent(intent);
 		tabHost.addTab(spec);
 	}
 
@@ -138,5 +163,19 @@ public class Ucan extends TabActivity {
 			mBound = false;
 		}
 	};
+
+	public boolean isUsingWiFi() {
+		ConnectivityManager connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+		NetworkInfo wifiInfo = connectivity
+				.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+		if (wifiInfo.getState() == NetworkInfo.State.CONNECTED
+				|| wifiInfo.getState() == NetworkInfo.State.CONNECTING) {
+			return true;
+		}
+
+		return false;
+	}
 
 }
