@@ -22,6 +22,12 @@ public class ProcessFileQueries implements Runnable {
 		mSearchRequests = searchRequests;
 	}
 
+	public void stop() {
+		running = false;
+		Thread.currentThread().interrupt();
+
+	}
+
 	@Override
 	public void run() {
 		running = true;
@@ -38,7 +44,8 @@ public class ProcessFileQueries implements Runnable {
 						request.getFileName());
 				Thread t = new Thread(sendAnswerTask);
 				t.start();
-			} catch (ConnectException e) {
+			}
+			catch (ConnectException e) {
 				Log.i(TAG,
 						"Couldn't send search result to client: "
 								+ e.getLocalizedMessage());
@@ -46,7 +53,8 @@ public class ProcessFileQueries implements Runnable {
 
 			catch (IOException e) {
 				e.printStackTrace();
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}

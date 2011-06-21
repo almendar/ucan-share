@@ -21,24 +21,33 @@ public class TcpServer implements Runnable {
 		activeConnections = new LinkedList<NetworkConnection>();
 	}
 
-	public void stopServer() throws IOException {
-		for (NetworkConnection c : activeConnections) {
-			c.close();
+	public void stopServer() {
+		try {
+			for (NetworkConnection c : activeConnections) {
+				c.close();
+			}
+			activeConnections.clear();
+		}catch (IOException e) {
+			//nothing to do with this
 		}
-		activeConnections.clear();
-		mSocket.close();
+		finally {
+			try {
+				mSocket.close();
+			}
+			catch (IOException e) {
+				//nothing to do with this 
+			}
+		}
 	}
 
 	public void startConnectionJob(NetworkConnection connection) {
 		activeConnections.add(connection);
 		new Thread(connection).start();
 	}
-	
+
 	public void removeFromActiveConnectionList(NetworkConnection connection) {
 		activeConnections.remove(connection);
 	}
-	
-
 
 	@Override
 	public void run() {
@@ -56,7 +65,8 @@ public class TcpServer implements Runnable {
 				NetworkConnection NC = new NetworkConnection(this);
 				NC.setSocket(clientConnection);
 				startConnectionJob(NC);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				e.printStackTrace();
 			}
 		}

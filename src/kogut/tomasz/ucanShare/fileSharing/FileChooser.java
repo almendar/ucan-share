@@ -61,8 +61,8 @@ public class FileChooser extends ListActivity {
 		updateExternalStorageState();
 		startWatchingExternalStorage();
 		mAdapter = new FileArrayAdapter(this, R.layout.file_view);
-		GlobalData gData = (GlobalData)getApplication();
-		mAdapter.setMarkedFilesCopy(gData.getSharedFolders());
+		GlobalData gData = (GlobalData) getApplication();
+//		mAdapter.setMarkedFilesCopy(gData.getSharedFolders());
 		mAdapter.setMarkedFilesCopy(readSharedPaths());
 		mAdapter.notifyDataSetChanged();
 		this.setListAdapter(mAdapter);
@@ -73,8 +73,8 @@ public class FileChooser extends ListActivity {
 	@Override
 	public void onStop() {
 		super.onStop();
-	
-		Log.d(TAG,"[Stop]");
+
+		Log.d(TAG, "[Stop]");
 	}
 
 	/** Called when the activity looses focus **/
@@ -82,19 +82,21 @@ public class FileChooser extends ListActivity {
 	public void onPause() {
 		super.onPause();
 		storeSharedPaths(mAdapter.getMarkedFilesCopy());
-		Log.d(TAG,"[Pause]");
-		
+		Log.d(TAG, "[Pause]");
+
 	}
 
-//	@Override
-//	protected void onResume() {
-//		super.onResume();
-//		mAdapter.setMarkedFilesCopy(readSharedPaths());
-//		Log.d(TAG,"[Resume]");
-//	}
+	// @Override
+	// protected void onResume() {
+	// super.onResume();
+	// mAdapter.setMarkedFilesCopy(readSharedPaths());
+	// Log.d(TAG,"[Resume]");
+	// }
 
 	private void fill() {
-		mAdapter.clear();
+		if (mAdapter != null) {
+			mAdapter.clear();
+		}
 		if (mCurrentDir == null) {
 			return;
 		}
@@ -107,7 +109,8 @@ public class FileChooser extends ListActivity {
 
 				dir.add(new LocalFileDescriptor(f.getName(), "Folder", f
 						.getAbsolutePath()));
-			} else {
+			}
+			else {
 				fls.add(new LocalFileDescriptor(f.getName(), "File size:"
 						+ f.length(), f.getAbsolutePath()));
 			}
@@ -160,7 +163,8 @@ public class FileChooser extends ListActivity {
 			descriptor.setChecked(!descriptor.isChecked());
 			mCurrentDir = new File(descriptor.getPath());
 			fill();
-		} else {
+		}
+		else {
 			onFileClick(descriptor);
 		}
 	}
@@ -169,7 +173,8 @@ public class FileChooser extends ListActivity {
 		if (!available) {
 			mCurrentDir = null;
 			fill();
-		} else {
+		}
+		else {
 			mCurrentDir = Environment.getExternalStorageDirectory();
 		}
 	}
@@ -178,10 +183,12 @@ public class FileChooser extends ListActivity {
 		String state = Environment.getExternalStorageState();
 		if (Environment.MEDIA_MOUNTED.equals(state)) {
 			mExternalStorageAvailable = mExternalStorageWriteable = true;
-		} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+		}
+		else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
 			mExternalStorageAvailable = true;
 			mExternalStorageWriteable = false;
-		} else {
+		}
+		else {
 			mExternalStorageAvailable = mExternalStorageWriteable = false;
 		}
 		handleExternalStorageState(mExternalStorageAvailable,
@@ -216,17 +223,24 @@ public class FileChooser extends ListActivity {
 			ObjectInput ois = new ObjectInputStream(buffer);
 			paths = (ArrayList<LocalFileDescriptor>) ois.readObject();
 			ois.close();
-			Log.i(TAG, "Shared paths were succesfully loaded. Number of records loaded: "+paths.size());
-		} catch (FileNotFoundException e) {
+			Log.i(TAG,
+					"Shared paths were succesfully loaded. Number of records loaded: "
+							+ paths.size());
+		}
+		catch (FileNotFoundException e) {
 			Log.w(TAG, e.getMessage());
-		} catch (StreamCorruptedException e) {
+		}
+		catch (StreamCorruptedException e) {
 			Log.w(TAG, e.getMessage());
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			Log.w(TAG, e.getMessage());
-		} catch (ClassNotFoundException e) {
+		}
+		catch (ClassNotFoundException e) {
 			Log.w(TAG, e.getMessage());
 
-		} finally {
+		}
+		finally {
 			if (paths == null) {
 				paths = new ArrayList<LocalFileDescriptor>();
 				Log.i(TAG, "Empty shared locations returned");
@@ -237,9 +251,6 @@ public class FileChooser extends ListActivity {
 
 	}
 
-	
-	
-	
 	static void storeSharedPaths(ArrayList<LocalFileDescriptor> paths) {
 		File f = Environment.getExternalStorageDirectory();
 		File shared_file = new File(f.getAbsoluteFile() + CACHE_DIR
@@ -248,7 +259,8 @@ public class FileChooser extends ListActivity {
 
 			if (!shared_file.getParentFile().exists()) {
 				boolean ret = shared_file.getParentFile().mkdirs();
-				Log.i(TAG, "Attempt to create directory for data was: "+ (ret ? "succes" : "failed"));
+				Log.i(TAG, "Attempt to create directory for data was: "
+						+ (ret ? "succes" : "failed"));
 			}
 
 			if (!shared_file.exists()) {
@@ -260,12 +272,16 @@ public class FileChooser extends ListActivity {
 			ObjectOutputStream oos = new ObjectOutputStream(buffer);
 			oos.writeObject(paths);
 			oos.close();
-			Log.i(TAG, "Paths file was saved. Number of records saved: " + paths.size());
-		} catch (FileNotFoundException e) {
+			Log.i(TAG, "Paths file was saved. Number of records saved: "
+					+ paths.size());
+		}
+		catch (FileNotFoundException e) {
 			Log.w(TAG, e.getMessage());
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			Log.w(TAG, e.getMessage());
-		} finally {
+		}
+		finally {
 		}
 
 	}

@@ -11,6 +11,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 
 import kogut.tomasz.ucanShare.fileSearch.SearchRequest;
@@ -23,13 +24,13 @@ public class MulticastServer {
 
 	private MulticastSocket mSocket;
 	private String mName;
-	private NetworkInfo mNetworkInfo;
+	private NetworkingInformation mNetworkInfo;
 	private Context mContext;
 	volatile boolean listeningToBroadcast = false;
 	private final static int PORT = 4445;
 	private static final String TAG = MulticastServer.class.getName();
 	private final BlockingQueue<SearchRequest> mSeachQueries;
-
+	private final InetAddress mGroup  = InetAddress.getByName("224.0.0.1");
 	public MulticastServer(Context context,
 			BlockingQueue<SearchRequest> msgQueue) throws IOException {
 		this(context, "MulticastServer", msgQueue);
@@ -40,8 +41,8 @@ public class MulticastServer {
 		super();
 		mName = name;
 		mSocket = new MulticastSocket(PORT);
-		mNetworkInfo = new NetworkInfo(context);
-		mSocket.joinGroup(InetAddress.getByName("230.0.0.1"));
+		mNetworkInfo = new NetworkingInformation(context);
+		mSocket.joinGroup(mGroup);
 		mContext = context;
 		mSeachQueries = searchQueries;
 
@@ -64,34 +65,38 @@ public class MulticastServer {
 		return ret;
 	}
 
-	public void listenToBroadcast() {		
+	public void listenToBroadcast() throws UnknownHostException {
 		if (listeningToBroadcast)
 			return;
 		listeningToBroadcast = true;
 		byte[] data = new byte[1000];
 		final InetAddress myIp = mNetworkInfo.getLocalIpAdress();
 		while (listeningToBroadcast) {
-			final DatagramPacket packet = new DatagramPacket(data, data.length,
-					mNetworkInfo.getBroadcastAdress(), PORT);
+			final DatagramPacket packet = new DatagramPacket(data, data.length);
 			try {
-				mSocket.setSoTimeout(1500);
+				// mSocket.setSoTimeout(1500);
 				mSocket.receive(packet);
 				final InetAddress senderIp = packet.getAddress();
 				if (myIp.equals(senderIp)) {
 					Log.d(TAG, "Ignoring broadcast from myself.");
 					continue;
-				} else {
+				}
+				else {
 					SearchRequest bsm = (SearchRequest) convertToObject(packet
 							.getData());
 					mSeachQueries.put(bsm);
 				}
-			} catch (SocketException e) {
+			}
+			catch (SocketException e) {
 				// e.printStackTrace();
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				// e.printStackTrace();
-			} catch (ClassNotFoundException e) {
+			}
+			catch (ClassNotFoundException e) {
 				// e.printStackTrace();
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				// e.printStackTrace();
 			}
 		}
@@ -108,9 +113,10 @@ public class MulticastServer {
 		try {
 			byte[] binaryData = convertToBytes(msg);
 			final DatagramPacket packet = new DatagramPacket(binaryData,
-					binaryData.length, mNetworkInfo.getBroadcastAdress(), PORT);
+					binaryData.length,mGroup,PORT);
 			mSocket.send(packet);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			Log.w(TAG, "Couldn't send multicast message");
 		}
 	}

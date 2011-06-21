@@ -12,14 +12,14 @@ import android.util.Log;
 import android.widget.Toast;
 
 import kogut.tomasz.ucanShare.tools.files.FileDescription;
-import kogut.tomasz.ucanShare.tools.networking.NetworkInfo;
+import kogut.tomasz.ucanShare.tools.networking.NetworkingInformation;
 import kogut.tomasz.ucanShare.tools.networking.TcpServer;
 
 public class SendSearchResultTask implements Runnable {
 
 	private final static String TAG = SendSearchResultTask.class.getName();
 	private LinkedList<FileDescription> mSearchResult;
-	NetworkInfo mNetworkInfo;
+	NetworkingInformation mNetworkInfo;
 	ObjectOutputStream oos = null;
 	Socket mSocket = null;
 	private InetAddress mToAdress;
@@ -42,7 +42,7 @@ public class SendSearchResultTask implements Runnable {
 			oos = new ObjectOutputStream(mSocket.getOutputStream());
 			oos.writeObject(srm);
 			oos.flush();
-			Log.d(TAG, "Sent search result to:"+mToAdress.getHostAddress()+ " with matches:"+mSearchResult.size());
+			Log.d(TAG, "Sent search result to:"+mToAdress.getHostAddress()+ " with matches:" + mSearchResult.size());
 			Thread.sleep(300);
 		}
 		catch (IOException e) {

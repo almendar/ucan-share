@@ -1,9 +1,8 @@
 package kogut.tomasz.ucanShare;
 
 import java.io.IOException;
-import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,34 +12,40 @@ import java.util.concurrent.BlockingQueue;
 import kogut.tomasz.ucanShare.fileSearch.ProcessFileQueries;
 import kogut.tomasz.ucanShare.fileSearch.SearchRequest;
 import kogut.tomasz.ucanShare.fileSearch.SearchResultMessage;
-import kogut.tomasz.ucanShare.fileSearch.SendSearchResultTask;
+import kogut.tomasz.ucanShare.fileUpload.DownloadFileTask;
 import kogut.tomasz.ucanShare.fileUpload.FileUploader;
-import kogut.tomasz.ucanShare.tools.files.FileDescription;
-import kogut.tomasz.ucanShare.tools.files.SharedFilesManager;
 import kogut.tomasz.ucanShare.tools.networking.MulticastServer;
-import kogut.tomasz.ucanShare.tools.networking.NetworkInfo;
-
+import kogut.tomasz.ucanShare.tools.networking.NetworkingInformation;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
-public class NetworkingService extends Service {
+public class NetworkingService extends Service implements NotifyMe {
 
 	private final static String TAG = NetworkingService.class.getName();
 	final int MAX_SEARCH_REQUESTS = 10;
+	final int STARTING_MAX_DOWNLOADS = 100;
 	BlockingQueue<SearchRequest> mFileSearchRequests = new ArrayBlockingQueue<SearchRequest>(
 			MAX_SEARCH_REQUESTS);
-	private NetworkInfo mNetworkInfo;
+	BlockingQueue<DownloadFileTask> activeDownloads = new ArrayBlockingQueue<DownloadFileTask>(
+			STARTING_MAX_DOWNLOADS);
+	private NetworkingInformation mNetworkInfo;
 	private final IBinder mBinder = new LocalBinder();
 	private MulticastServer mMulticastServer;
 	private Hashtable<String, List<SearchResultMessage>> mSearchResults;
+
 	private Runnable rcvFileQueries = new Runnable() {
 		@Override
 		public void run() {
-			mMulticastServer.listenToBroadcast();
+			try {
+				mMulticastServer.listenToBroadcast();
+			}
+			catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	};
 
@@ -62,7 +67,7 @@ public class NetworkingService extends Service {
 		}
 		mQueriesProcessor = new ProcessFileQueries(gd.getFilesManager(),
 				mFileSearchRequests);
-		mNetworkInfo = new NetworkInfo(getApplicationContext());
+		mNetworkInfo = new NetworkingInformation(getApplicationContext());
 		new Thread(mQueriesProcessor).start();
 		new Thread(rcvFileQueries).start();
 		new Thread(mFileUploder).start();
@@ -85,23 +90,59 @@ public class NetworkingService extends Service {
 		}
 	}
 
+	public synchronized void addDownloadTask(DownloadFileTask task) {
+		task.setListner(this);
+		activeDownloads.add(task);
+		new Thread(task).start();
+	}
+
+	public synchronized void discardDownloadTask(int id) {
+		DownloadFileTask lookFor = null;
+		for (DownloadFileTask task : activeDownloads) {
+			if (task.getId() == id) {
+				lookFor = task;
+				break;
+			}
+		}
+		if (lookFor != null) {
+			lookFor.breakDownload();
+			activeDownloads.remove(lookFor);
+
+		}
+	}
+
 	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
 		Log.d(TAG, "[Destroyed]");
 		mMulticastServer.stopListeningToBroadcast();
+		mFileSearchRequests.clear();
+		mFileUploder.stopServer();
+		mQueriesProcessor.stop();
+		for (DownloadFileTask downloadTask : activeDownloads) {
+			downloadTask.breakDownload();
+		}
 	}
 
 	public void sendSearchRequest(String fileNameSearch) {
 		SearchRequest sr = new SearchRequest(fileNameSearch,
 				mNetworkInfo.getLocalIpAdress());
 		mMulticastServer.sendBroadcast(sr);
+		Log.d(TAG, "Broadcast with search query" + fileNameSearch + " was send");
 	}
 
-	public void showServiceToast() {
-		Toast.makeText(getApplicationContext(),
-				"NetworkingService toast! Cheers!", Toast.LENGTH_SHORT).show();
+	public synchronized List<ActiveDownloadDescription> getOngoingDownload() {
+		LinkedList<ActiveDownloadDescription> ret = new LinkedList<ActiveDownloadDescription>();
+		if (activeDownloads != null) {
+			for (DownloadFileTask desc : activeDownloads) {
+				ActiveDownloadDescription q = new ActiveDownloadDescription(
+						desc, desc.getFileName(), desc.getPercentageTaskDone(),
+						desc.getId());
+				ret.add(q);
+			}
+		}
+		return ret;
 	}
 
 	/**
@@ -114,6 +155,22 @@ public class NetworkingService extends Service {
 			// methods
 			return NetworkingService.this;
 		}
+	}
+
+	@Override
+	public synchronized void updateMe(Object sender, Object arg) {
+		Log.d(TAG, "Observer update");
+		DownloadFileTask dft = (DownloadFileTask) sender;
+		String msg = (String) arg;
+		if (msg == DownloadFileTask.FINISHED) {
+			synchronized (this) {
+				// activeDownloads.remove(dft);
+			}
+
+		}
+		else if (msg == DownloadFileTask.FAILED) {
+		}
+
 	}
 
 }

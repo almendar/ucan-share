@@ -11,14 +11,14 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
-public class NetworkInfo {
+public class NetworkingInformation {
 
 	private Context mContext;
-	private final static String TAG = NetworkInfo.class.getName();
+	private final static String TAG = NetworkingInformation.class.getName();
 	private InetAddress mBroadcastAdress;
 	private InetAddress mLocalIpAdress;
 
-	public NetworkInfo(Context context) {
+	public NetworkingInformation(Context context) {
 		mContext = context;
 		resolveBroadcastAddress();
 		resolveLocalIpAddress();

@@ -7,13 +7,13 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import kogut.tomasz.ucanShare.NetworkingService;
 import kogut.tomasz.ucanShare.NetworkingService.LocalBinder;
 import kogut.tomasz.ucanShare.R;
-import kogut.tomasz.ucanShare.networking.DownloadFileTask;
+import kogut.tomasz.ucanShare.fileUpload.DownloadFileTask;
 import kogut.tomasz.ucanShare.tools.files.FileDescription;
-import kogut.tomasz.ucanShare.tools.files.LocalFileDescriptor;
 import kogut.tomasz.ucanShare.tools.networking.NetworkConnection;
 import kogut.tomasz.ucanShare.tools.networking.TcpServer;
 import android.app.Activity;
@@ -37,7 +37,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 public class NetworkSearch extends Activity {
 	private final static String TAG = NetworkSearch.class.getName();
@@ -55,6 +54,7 @@ public class NetworkSearch extends Activity {
 	ListView mSeachResultDisplay;
 	EditText mSearchInput;
 	ProgressDialog progressDialog;
+	AtomicInteger id = new AtomicInteger(0);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +70,14 @@ public class NetworkSearch extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (isBound())
-			unbindFromNetworkService();
+		unbindFromNetworkService();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (progressDialog != null)
+			progressDialog.dismiss();
 	}
 
 	public void setBound(boolean value) {
@@ -86,13 +92,26 @@ public class NetworkSearch extends Activity {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				Log.d(TAG, "Start to wait");
 				waitForResults();
-				Log.d(TAG, "End waiting");
+				updateGUI();
+			}
+
+			/**
+			 * 
+			 */
+			private void updateGUI() {
 				mHandler.post(new Runnable() {
 
 					@Override
 					public void run() {
+						fillAdapter();
+					}
+
+					/**
+					 * 
+					 */
+					private void fillAdapter() {
+						mAdapter.clear();
 						if (mSearchResult.size() > 0) {
 							for (SearchResultMessage anser : mSearchResult) {
 								for (FileDescription desc : anser
@@ -100,17 +119,10 @@ public class NetworkSearch extends Activity {
 									mAdapter.add(desc);
 								}
 							}
-							Toast.makeText(
-									NetworkSearch.this,
-									"Adapter has objects:"
-											+ mAdapter.getCount(),
-									Toast.LENGTH_SHORT).show();
 
 						}
-
 					}
 				});
-
 			}
 
 			/**
@@ -148,15 +160,18 @@ public class NetworkSearch extends Activity {
 	}
 
 	private void bindToNetworkService() {
-		Intent intent = new Intent(this, NetworkingService.class);
-		mBound = getApplicationContext().bindService(intent, mConnection,
-				Context.BIND_AUTO_CREATE);
-		Log.d(TAG, "Network service was bound-UCAN");
+		if (!isBound()) {
+			Intent intent = new Intent(this, NetworkingService.class);
+			getApplicationContext().bindService(intent, mConnection,
+					Context.BIND_AUTO_CREATE);
+			mBound = true;
+			Log.d(TAG, "Network service was bound-Network search");
+		}
 	}
 
 	private void unbindFromNetworkService() {
 		if (isBound()) {
-			unbindService(mConnection);
+			getApplicationContext().unbindService(mConnection);
 			setBound(false);
 			Log.d(TAG, "Networking service was unbound.");
 		}
@@ -248,23 +263,17 @@ public class NetworkSearch extends Activity {
 		 * 
 		 */
 		private void stopListeningForAnswers() {
-			try {
-				mSearchResultServer.stopServer();
-				synchronized (lock) {
-					mResultsReady = true;
-					lock.notify();
+			mSearchResultServer.stopServer();
+			synchronized (lock) {
+				mResultsReady = true;
+				lock.notify();
+			}
+			mHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					progressDialog.dismiss();
 				}
-				mHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						progressDialog.hide();
-					}
-				});
-			}
-			catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			});
 		}
 
 		/**
@@ -297,6 +306,7 @@ public class NetworkSearch extends Activity {
 							"Searching", "Waiting for answers", false, false);
 					progressDialog.setMax(100);
 					progressDialog.show();
+
 				}
 			});
 		}
@@ -308,12 +318,13 @@ public class NetworkSearch extends Activity {
 				DialogInterface.OnClickListener {
 			@Override
 			public void onClick(DialogInterface arg0, int arg1) {
-
+				// Cancel, does nothing
 			}
 		}
 
 		private final class DownloadFileConfirm implements
 				DialogInterface.OnClickListener {
+
 			private final FileDescription fd;
 
 			private DownloadFileConfirm(FileDescription fd) {
@@ -327,21 +338,11 @@ public class NetworkSearch extends Activity {
 					for (FileDescription iterFd : ns.getSearchResult()) {
 						if (iterFd.equals(fd)) {
 							DownloadFileTask dft;
-							try {
-								dft = new DownloadFileTask(ns.getFrom(), fd);
-								new Thread(dft).start();
-							}
-							catch (UnknownHostException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							// Toast.makeText(NetworkSearch.this,
-							// iterFd.getFileName()+"from"+ns.getFrom().getHostName(),
-							// Toast.LENGTH_SHORT).show();
+							int newId = id.incrementAndGet();
+							Log.d(TAG,"Current task id:" + newId);
+							dft = new DownloadFileTask(ns.getFrom(), fd,
+									newId);
+							mService.addDownloadTask(dft);
 						}
 					}
 				}
@@ -395,6 +396,7 @@ public class NetworkSearch extends Activity {
 					String log_msg = String.format("Connection from client:%s",
 							clientAdress);
 					Log.d(TAG, log_msg);
+					NetworkSearch.this.mSearchResult.clear();
 					FetchSearchResults searchResultTask = new FetchSearchResults(
 							this, NetworkSearch.this.mSearchResult);
 					searchResultTask.setSocket(clientConnection);
