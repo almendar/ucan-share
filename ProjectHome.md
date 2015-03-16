@@ -1,0 +1,1 @@
+Decentralized P2P filesharing for Android, allows you to share different files between android-based devices in local network.
